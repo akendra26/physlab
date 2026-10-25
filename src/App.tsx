@@ -39,10 +39,6 @@ function App() {
     [mode, params],
   );
   const duration = metrics.duration;
-  const state = useMemo(
-    () => calculateState(mode, params, Math.min(simulationTime, duration)),
-    [mode, params, simulationTime, duration],
-  );
 
   const setClock = useCallback((time: number) => {
     timeRef.current = time;
