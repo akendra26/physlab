@@ -19,17 +19,26 @@ export default function RotaryDial({
   onChange,
 }: Props) {
   const angle = ((value % 360) + 360) % 360;
-  const radians = ((angle - 90) * Math.PI) / 180;
+  // Konvensi sudut fisika: 0° ke kanan, 90° ke atas, berlawanan arah jarum jam.
+  const radians = (angle * Math.PI) / 180;
   const endX = 50 + 34 * Math.cos(radians);
-  const endY = 50 + 34 * Math.sin(radians);
+  const endY = 50 - 34 * Math.sin(radians);
 
   function ambilSudut(clientX: number, clientY: number, element: SVGSVGElement) {
-    const rect = element.getBoundingClientRect();
-    const x = ((clientX - rect.left) / rect.width) * 100 - 50;
-    const y = ((clientY - rect.top) / rect.height) * 100 - 50;
-    const derajat = (Math.atan2(y, x) * 180 / Math.PI + 450) % 360;
+    // Konversi koordinat pointer ke koordinat viewBox agar tetap akurat
+    // ketika ukuran SVG berubah atau tampil pada layar dengan skala berbeda.
+    const titik = element.createSVGPoint();
+    titik.x = clientX;
+    titik.y = clientY;
+    const matriks = element.getScreenCTM();
+    if (!matriks) return;
+    const lokal = titik.matrixTransform(matriks.inverse());
+    const dx = lokal.x - 50;
+    const dy = 50 - lokal.y;
+    let derajat = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
     const snapped = Math.round(derajat / step) * step;
-    onChange(Math.min(max, Math.max(min, snapped)));
+    derajat = snapped >= 360 ? 0 : snapped;
+    onChange(Math.min(max, Math.max(min, derajat)));
   }
 
   function pointerDown(event: PointerEvent<SVGSVGElement>) {
@@ -39,7 +48,8 @@ export default function RotaryDial({
   }
 
   function pointerMove(event: PointerEvent<SVGSVGElement>) {
-    if (event.buttons !== 1) return;
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    event.preventDefault();
     ambilSudut(event.clientX, event.clientY, event.currentTarget);
   }
 

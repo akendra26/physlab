@@ -161,3 +161,18 @@
   .ps-question-header { align-items: flex-start; flex-direction: column; }
   .ps-final-answer { align-items: flex-start; flex-direction: column; }
 }
+
+/* Pengumpulan jawaban per topik */
+.ps-option:disabled { cursor: default; opacity: 1; }
+.ps-submit-panel { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 16px; margin-top: 18px; border: 1px solid rgba(85,224,193,.2); border-radius: 9px; background: rgba(85,224,193,.045); }
+.ps-submit-panel strong { display: block; color: #e5f5f1; font-size: .76rem; }
+.ps-submit-panel p { margin: 5px 0 0; color: var(--muted, #91a1b8); font-size: .66rem; line-height: 1.5; }
+.ps-submit-panel.is-submitted { border-color: rgba(142,167,255,.22); background: rgba(142,167,255,.045); }
+.ps-submit-panel > .ps-primary-button, .ps-submit-panel > .ps-secondary-button { flex: 0 0 auto; }
+.ps-retake-confirm { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px; margin-top: 10px; border: 1px solid rgba(240,139,139,.25); border-radius: 8px; background: rgba(240,139,139,.045); color: #e5d5d5; font-size: .7rem; line-height: 1.5; }
+.ps-retake-confirm > div { display: flex; flex: 0 0 auto; gap: 7px; }
+@media (max-width: 560px) {
+  .ps-submit-panel, .ps-retake-confirm { align-items: stretch; flex-direction: column; }
+  .ps-submit-panel > .ps-primary-button, .ps-submit-panel > .ps-secondary-button { width: 100%; }
+  .ps-retake-confirm > div { justify-content: flex-end; }
+}

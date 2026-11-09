@@ -949,3 +949,103 @@ h2 { margin: 0; font: 600 1.2rem 'Space Grotesk', sans-serif; letter-spacing: -.
 .roda-roda-controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); gap:12px 16px; }
 .roda-roda-readouts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
 @media (max-width:620px) { .roda-roda-readouts { grid-template-columns:1fr; } }
+
+
+
+
+/* Rotary dial: sudut interaktif untuk simulasi gerak parabola. */
+.rotary-dial-control {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+.rotary-dial-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text, #dce5f2);
+  font-size: .82rem;
+}
+.rotary-dial-number {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted, #91a1b8);
+}
+.rotary-dial-number input {
+  width: 76px;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid var(--border, #30415a);
+  border-radius: 7px;
+  background: #0c1726;
+  color: #edf3fb;
+  font: 600 .8rem 'DM Mono', monospace;
+  text-align: right;
+}
+.rotary-dial-wrap {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: min(100%, 190px);
+  margin-inline: auto;
+  touch-action: none;
+  user-select: none;
+  outline: none;
+}
+.rotary-dial-wrap:focus-visible {
+  border-radius: 12px;
+  box-shadow: 0 0 0 2px rgba(85,224,193,.45);
+}
+.rotary-dial-svg {
+  display: block;
+  width: 100%;
+  max-width: 170px;
+  height: auto;
+  aspect-ratio: 1;
+  overflow: visible;
+  cursor: grab;
+  touch-action: none;
+}
+.rotary-dial-svg:active { cursor: grabbing; }
+.rotary-dial-track {
+  fill: #111e30;
+  stroke: #40516a;
+  stroke-width: 3;
+}
+.rotary-dial-progress {
+  fill: none;
+  stroke: #8ea7ff;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.rotary-dial-tick { stroke: #8291a8; stroke-width: 1.5; }
+.rotary-dial-needle { stroke: #f6bd60; stroke-width: 2.5; stroke-linecap: round; }
+.rotary-dial-handle { fill: #f6bd60; stroke: #172337; stroke-width: 1.5; }
+.rotary-dial-center { fill: #8ea7ff; }
+.rotary-dial-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #edf3fb;
+  font: 600 .82rem 'DM Mono', monospace;
+  pointer-events: none;
+}
+.rotary-dial-min,
+.rotary-dial-max {
+  position: absolute;
+  bottom: 2px;
+  color: var(--muted, #91a1b8);
+  font: 500 .58rem 'DM Mono', monospace;
+  pointer-events: none;
+}
+.rotary-dial-min { left: 0; }
+.rotary-dial-max { right: 0; }
+.rotary-dial-range {
+  width: 100%;
+  accent-color: #8ea7ff;
+  cursor: pointer;
+}

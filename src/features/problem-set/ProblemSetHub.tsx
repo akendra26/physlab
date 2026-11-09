@@ -10,8 +10,11 @@ type ProblemSetHubProps = {
 
 export default function ProblemSetHub({ progres, onPilihTopik }: ProblemSetHubProps) {
   const jumlahSemuaSoal = BANK_SOAL_PROBLEM_SET.reduce((jumlah, topik) => jumlah + topik.soal.length, 0);
+  const topikSelesai = BANK_SOAL_PROBLEM_SET.filter((topik) => progres.topikDikumpulkan?.[topik.id]).length;
   const jumlahBenar = BANK_SOAL_PROBLEM_SET.reduce(
-    (jumlah, topik) => jumlah + topik.soal.filter((soal) => progres.percobaan[soal.id]?.benar).length,
+    (jumlah, topik) => jumlah + (progres.topikDikumpulkan?.[topik.id]
+      ? topik.soal.filter((soal) => progres.percobaan[soal.id]?.benar).length
+      : 0),
     0,
   );
   const persentaseTotal = jumlahSemuaSoal > 0 ? Math.round((jumlahBenar / jumlahSemuaSoal) * 100) : 0;
@@ -37,7 +40,7 @@ export default function ProblemSetHub({ progres, onPilihTopik }: ProblemSetHubPr
       <section className="ps-overview" aria-label="Ringkasan progres pengerjaan">
         <div className="ps-overview-copy">
           <span className="ps-overview-label">PROGRES KESELURUHAN</span>
-          <strong>{jumlahBenar}<small> / {jumlahSemuaSoal} soal benar</small></strong>
+          <strong>{topikSelesai}<small> / {BANK_SOAL_PROBLEM_SET.length} topik dikumpulkan · {jumlahBenar}/{jumlahSemuaSoal} benar</small></strong>
           <div className="ps-overview-track"><span style={{ width: `${persentaseTotal}%` }} /></div>
         </div>
         <div className="ps-overview-percent">{persentaseTotal}<small>%</small></div>
@@ -49,15 +52,18 @@ export default function ProblemSetHub({ progres, onPilihTopik }: ProblemSetHubPr
           <p className="ps-eyebrow">PILIH MATERI</p>
           <h2>Topik Problem Set</h2>
         </div>
-        <span className="ps-count">{BANK_SOAL_PROBLEM_SET.length} MATERI · {jumlahSemuaSoal} SOAL MOCK</span>
+        <span className="ps-count">{BANK_SOAL_PROBLEM_SET.length} MATERI · {jumlahSemuaSoal} SOAL LATIHAN</span>
       </div>
 
       <div className="ps-topic-grid">
         {BANK_SOAL_PROBLEM_SET.map((topik) => {
-          const benar = topik.soal.filter((soal) => progres.percobaan[soal.id]?.benar).length;
           const total = topik.soal.length;
-          const persen = total ? Math.round((benar / total) * 100) : 0;
-          const selesai = benar === total;
+          const dikumpulkan = Boolean(progres.topikDikumpulkan?.[topik.id]);
+          const benar = dikumpulkan
+            ? topik.soal.filter((soal) => progres.percobaan[soal.id]?.benar).length
+            : 0;
+          const persen = dikumpulkan && total ? Math.round((benar / total) * 100) : 0;
+          const selesai = dikumpulkan;
 
           return (
             <button
@@ -77,13 +83,13 @@ export default function ProblemSetHub({ progres, onPilihTopik }: ProblemSetHubPr
               <div className="ps-card-meta">
                 <span>{total} soal</span>
                 <span>{topik.estimasiMenit} menit</span>
-                <span>{selesai ? "Tuntas" : `${benar}/${total} benar`}</span>
+                <span>{selesai ? `${benar}/${total} benar` : "Belum dikumpulkan"}</span>
               </div>
               <div className="ps-topic-progress" aria-label={`Progres ${persen}%`}>
                 <span style={{ width: `${persen}%` }} />
               </div>
               <div className="ps-card-action">
-                <span>{selesai ? "Ulangi latihan" : benar > 0 ? "Lanjutkan latihan" : "Mulai latihan"}</span>
+                <span>{selesai ? "Lihat hasil / retake" : "Mulai / lanjutkan latihan"}</span>
                 <span aria-hidden="true">↗</span>
               </div>
             </button>
@@ -92,8 +98,7 @@ export default function ProblemSetHub({ progres, onPilihTopik }: ProblemSetHubPr
       </div>
 
       <p className="ps-mock-note">
-        <strong>Catatan:</strong> materi dan angka soal saat ini adalah data contoh (mock).
-        Struktur bank soal sudah disiapkan untuk menerima naskah LaTeX asli.
+        <strong>Catatan:</strong> Soal-soal ini merupakan latihan konseptual dengan model ideal dan satuan SI. Periksa asumsi pada setiap soal sebelum menerapkan hasilnya ke situasi nyata.
       </p>
     </section>
   );

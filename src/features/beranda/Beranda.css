@@ -204,6 +204,12 @@
   border-bottom: 1px solid rgba(205, 218, 255, .07);
   background: linear-gradient(90deg, rgba(22, 30, 61, .66), rgba(8, 13, 30, .24));
 }
+.site-route-heading > div:first-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .site-route-kicker {
   color: rgba(194, 205, 231, .52);
   font: 500 .58rem 'DM Mono', monospace;

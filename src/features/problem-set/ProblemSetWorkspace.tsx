@@ -1,41 +1,47 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import MathContent from "./MathContent";
 import type {
   PercobaanJawaban,
-  SoalProblemSet,
   TopikProblemSet,
 } from "./dataProblemSet";
 
 type ProblemSetWorkspaceProps = {
   topik: TopikProblemSet;
   indeksSoal: number;
+  drafJawaban: Record<string, string>;
   percobaan: Record<string, PercobaanJawaban>;
+  sudahDikumpulkan: boolean;
   onKembali: () => void;
   onPilihSoal: (indeks: number) => void;
-  onPeriksa: (soal: SoalProblemSet, jawaban: string) => void;
+  onUbahDraf: (soalId: string, jawaban: string) => void;
+  onKumpulkan: () => void;
+  onUlangi: () => void;
 };
 
 export default function ProblemSetWorkspace({
   topik,
   indeksSoal,
+  drafJawaban,
   percobaan,
+  sudahDikumpulkan,
   onKembali,
   onPilihSoal,
-  onPeriksa,
+  onUbahDraf,
+  onKumpulkan,
+  onUlangi,
 }: ProblemSetWorkspaceProps) {
   const soal = topik.soal[indeksSoal];
-  const percobaanAktif = percobaan[soal.id];
-  const [jawabanIsian, setJawabanIsian] = useState(percobaanAktif?.jawaban ?? "");
-  const [pembahasanTerbuka, setPembahasanTerbuka] = useState(false);
+  const jawabanAktif = drafJawaban[soal.id] ?? "";
+  const [konfirmasiUlangi, setKonfirmasiUlangi] = useState(false);
 
-  const jumlahBenar = topik.soal.filter((item) => percobaan[item.id]?.benar).length;
-  const progresTopik = Math.round((jumlahBenar / topik.soal.length) * 100);
-  const umpanBalikSesuaiJawaban = soal.jenis === "pilihan-ganda"
-    || percobaanAktif?.jawaban === jawabanIsian;
+  const jumlahTerisi = topik.soal.filter((item) => (drafJawaban[item.id] ?? "").trim()).length;
+  const jumlahBenar = sudahDikumpulkan
+    ? topik.soal.filter((item) => percobaan[item.id]?.benar).length
+    : 0;
+  const progresTopik = Math.round((jumlahTerisi / topik.soal.length) * 100);
 
-  function kirimIsian(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    onPeriksa(soal, jawabanIsian);
+  function simpanPilihan(opsiId: string) {
+    if (!sudahDikumpulkan) onUbahDraf(soal.id, opsiId);
   }
 
   return (
@@ -57,8 +63,17 @@ export default function ProblemSetWorkspace({
       </header>
 
       <div className="ps-workspace-progress">
-        <div><span>PROGRES TOPIK</span><strong>{jumlahBenar} dari {topik.soal.length} soal benar</strong></div>
-        <div className="ps-overview-track"><span style={{ width: `${progresTopik}%` }} /></div>
+        <div>
+          <span>{sudahDikumpulkan ? "HASIL TOPIK" : "PROGRES PENGISIAN"}</span>
+          <strong>
+            {sudahDikumpulkan
+              ? `${jumlahBenar} dari ${topik.soal.length} jawaban benar`
+              : `${jumlahTerisi} dari ${topik.soal.length} soal terisi`}
+          </strong>
+        </div>
+        <div className="ps-overview-track">
+          <span style={{ width: `${sudahDikumpulkan ? (jumlahBenar / topik.soal.length) * 100 : progresTopik}%` }} />
+        </div>
       </div>
 
       <div className="ps-workspace-grid">
@@ -73,11 +88,9 @@ export default function ProblemSetWorkspace({
             </span>
           </div>
 
-          <div className="ps-question-prompt">
-            <MathContent>{soal.pertanyaan}</MathContent>
-          </div>
+          <div className="ps-question-prompt"><MathContent>{soal.pertanyaan}</MathContent></div>
 
-          {soal.petunjuk && (
+          {soal.petunjuk && !sudahDikumpulkan && (
             <details className="ps-hint">
               <summary>Lihat petunjuk</summary>
               <p>{soal.petunjuk}</p>
@@ -87,116 +100,130 @@ export default function ProblemSetWorkspace({
           {soal.jenis === "pilihan-ganda" ? (
             <div className="ps-options" role="group" aria-label="Pilihan jawaban">
               {soal.opsi.map((opsi) => {
-                const dipilih = percobaanAktif?.jawaban === opsi.id;
-                const benar = percobaanAktif?.diperiksa && opsi.id === soal.jawabanBenar;
-                const salah = percobaanAktif?.diperiksa && dipilih && !percobaanAktif.benar;
+                const dipilih = jawabanAktif === opsi.id;
+                const percobaanSoal = percobaan[soal.id];
+                const benar = sudahDikumpulkan && opsi.id === soal.jawabanBenar;
+                const salah = sudahDikumpulkan && dipilih && !percobaanSoal?.benar;
                 return (
                   <button
                     key={opsi.id}
                     className={`ps-option ${dipilih ? "is-selected" : ""} ${benar ? "is-correct" : ""} ${salah ? "is-wrong" : ""}`}
                     type="button"
-                    onClick={() => onPeriksa(soal, opsi.id)}
+                    onClick={() => simpanPilihan(opsi.id)}
+                    disabled={sudahDikumpulkan}
                     aria-pressed={dipilih}
                   >
                     <span className="ps-option-letter">{opsi.id}</span>
                     <span className="ps-option-text"><MathContent>{opsi.teks}</MathContent></span>
-                    <span className="ps-option-indicator" aria-hidden="true">{benar ? "✓" : salah ? "×" : ""}</span>
+                    {sudahDikumpulkan && <span className="ps-option-indicator">{benar ? "✓" : salah ? "×" : ""}</span>}
                   </button>
                 );
               })}
-              <p className="ps-answer-note">Pilih salah satu opsi. Jawaban akan diperiksa secara otomatis.</p>
             </div>
           ) : (
-            <form className="ps-short-answer" onSubmit={kirimIsian}>
+            <div className="ps-short-answer">
               <label htmlFor="ps-answer-input">Jawaban kamu</label>
               <div className="ps-input-row">
                 <input
                   id="ps-answer-input"
                   type="text"
                   inputMode="decimal"
-                  value={jawabanIsian}
-                  onChange={(event) => setJawabanIsian(event.target.value)}
+                  value={jawabanAktif}
+                  onChange={(event) => onUbahDraf(soal.id, event.target.value)}
                   placeholder="Contoh: 12 atau 12 m/s"
                   autoComplete="off"
+                  disabled={sudahDikumpulkan}
                 />
-                <button className="ps-primary-button" type="submit" disabled={!jawabanIsian.trim()}>
-                  Periksa jawaban
-                </button>
-              </div>
-              <p className="ps-answer-note">Gunakan satuan SI jika diminta. Toleransi numerik dicantumkan pada kunci data soal.</p>
-            </form>
-          )}
-
-          {percobaanAktif?.diperiksa && umpanBalikSesuaiJawaban && (
-            <div className={`ps-feedback ${percobaanAktif.benar ? "is-correct" : "is-wrong"}`} role="status" aria-live="polite">
-              <span className="ps-feedback-icon" aria-hidden="true">{percobaanAktif.benar ? "✓" : "!"}</span>
-              <div>
-                <strong>{percobaanAktif.benar ? "Jawaban benar!" : "Belum tepat, coba lagi."}</strong>
-                <p>{percobaanAktif.benar ? "Pemahamanmu sudah sesuai dengan kunci jawaban." : "Periksa kembali konsep, substitusi angka, dan satuan yang digunakan."}</p>
               </div>
             </div>
           )}
 
-          <div className="ps-explanation-actions">
-            <button
-              className="ps-secondary-button"
-              type="button"
-              onClick={() => setPembahasanTerbuka((terbuka) => !terbuka)}
-            >
-              {pembahasanTerbuka ? "Tutup pembahasan" : "Buka pembahasan"}
-            </button>
-            <span className="ps-answer-key-label">KUNCI TERSEDIA</span>
-          </div>
+          {!sudahDikumpulkan && (
+            <p className="ps-answer-note">
+              Jawaban belum dinilai. Kerjakan semua soal dalam topik ini, lalu tekan <strong>Kumpulkan semua jawaban</strong>.
+            </p>
+          )}
 
-          {pembahasanTerbuka && (
-            <section className="ps-explanation" aria-label="Pembahasan soal">
-              <p className="ps-eyebrow">PEMBAHASAN</p>
-              <MathContent>{soal.pembahasan}</MathContent>
-              <div className="ps-final-answer">
-                <span>JAWABAN AKHIR</span>
-                <MathContent>{soal.jawabanAkhir}</MathContent>
+          {sudahDikumpulkan && (
+            <>
+              <div className={`ps-feedback ${percobaan[soal.id]?.benar ? "is-correct" : "is-wrong"}`} role="status">
+                <span className="ps-feedback-icon">{percobaan[soal.id]?.benar ? "✓" : "!"}</span>
+                <div>
+                  <strong>{percobaan[soal.id]?.benar ? "Jawaban benar!" : "Jawaban belum tepat."}</strong>
+                  <p>{percobaan[soal.id]?.benar ? "Bagus! Jawabanmu sesuai dengan kunci." : `Jawaban yang kamu kumpulkan: ${percobaan[soal.id]?.jawaban || "—"}`}</p>
+                </div>
               </div>
-            </section>
+              <section className="ps-explanation" aria-label="Pembahasan soal">
+                <p className="ps-eyebrow">PEMBAHASAN</p>
+                <MathContent>{soal.pembahasan}</MathContent>
+                <div className="ps-final-answer">
+                  <span>JAWABAN AKHIR</span>
+                  <MathContent>{soal.jawabanAkhir}</MathContent>
+                </div>
+              </section>
+            </>
           )}
 
           <div className="ps-question-navigation">
-            <button
-              className="ps-secondary-button"
-              type="button"
-              onClick={() => onPilihSoal(Math.max(0, indeksSoal - 1))}
-              disabled={indeksSoal === 0}
-            >
+            <button className="ps-secondary-button" type="button" onClick={() => onPilihSoal(Math.max(0, indeksSoal - 1))} disabled={indeksSoal === 0}>
               ← Sebelumnya
             </button>
             <span>{indeksSoal + 1} / {topik.soal.length}</span>
-            <button
-              className="ps-primary-button"
-              type="button"
-              onClick={() => onPilihSoal(Math.min(topik.soal.length - 1, indeksSoal + 1))}
-              disabled={indeksSoal === topik.soal.length - 1}
-            >
+            <button className="ps-primary-button" type="button" onClick={() => onPilihSoal(Math.min(topik.soal.length - 1, indeksSoal + 1))} disabled={indeksSoal === topik.soal.length - 1}>
               Selanjutnya →
             </button>
           </div>
+
+          {!sudahDikumpulkan ? (
+            <div className="ps-submit-panel">
+              <div>
+                <strong>{jumlahTerisi === topik.soal.length ? "Semua soal sudah terisi." : `${topik.soal.length - jumlahTerisi} soal belum dijawab.`}</strong>
+                <p>Nilai dan pembahasan seluruh soal akan muncul setelah dikumpulkan.</p>
+              </div>
+              <button className="ps-primary-button" type="button" onClick={onKumpulkan} disabled={jumlahTerisi !== topik.soal.length}>
+                Kumpulkan semua jawaban
+              </button>
+            </div>
+          ) : (
+            <div className="ps-submit-panel is-submitted">
+              <div>
+                <strong>Topik telah dikumpulkan · Nilai {jumlahBenar}/{topik.soal.length}</strong>
+                <p>Pembahasan sudah terbuka. Kamu bisa meninjau semua soal atau mengulang topik ini.</p>
+              </div>
+              <button className="ps-secondary-button" type="button" onClick={() => setKonfirmasiUlangi(true)}>
+                Retake topik
+              </button>
+            </div>
+          )}
+          {konfirmasiUlangi && (
+            <div className="ps-retake-confirm" role="alertdialog" aria-label="Konfirmasi retake">
+              <span>Ulangi topik ini? Jawaban dan nilai percobaan sebelumnya untuk topik ini akan direset.</span>
+              <div>
+                <button className="ps-secondary-button" type="button" onClick={() => setKonfirmasiUlangi(false)}>Batal</button>
+                <button className="ps-primary-button" type="button" onClick={() => { setKonfirmasiUlangi(false); onUlangi(); }}>Ya, retake</button>
+              </div>
+            </div>
+          )}
         </article>
 
         <aside className="ps-question-sidebar">
           <section className="ps-side-card">
             <p className="ps-eyebrow">DAFTAR SOAL</p>
-            <h3>Navigasi latihan</h3>
+            <h3>{sudahDikumpulkan ? "Hasil pengerjaan" : "Navigasi latihan"}</h3>
             <div className="ps-question-list">
               {topik.soal.map((item, indeks) => {
+                const terisi = Boolean((drafJawaban[item.id] ?? "").trim());
                 const status = percobaan[item.id];
                 return (
                   <button
                     key={item.id}
                     type="button"
-                    className={`ps-question-nav-item ${indeks === indeksSoal ? "is-active" : ""} ${status?.benar ? "is-done" : ""}`}
+                    className={`ps-question-nav-item ${indeks === indeksSoal ? "is-active" : ""} ${sudahDikumpulkan && status?.benar ? "is-done" : ""}`}
                     onClick={() => onPilihSoal(indeks)}
                   >
                     <span>{String(indeks + 1).padStart(2, "0")}</span>
                     <span>{item.jenis === "pilihan-ganda" ? "Pilihan ganda" : "Isian singkat"}</span>
-                    <span className="ps-question-nav-status">{status?.benar ? "✓" : status?.diperiksa ? "·" : "—"}</span>
+                    <span className="ps-question-nav-status">{sudahDikumpulkan ? (status?.benar ? "✓" : "×") : (terisi ? "●" : "—")}</span>
                   </button>
                 );
               })}
@@ -207,7 +234,7 @@ export default function ProblemSetWorkspace({
             <div><span>Bidang</span><strong>{topik.bidang}</strong></div>
             <div><span>Jumlah soal</span><strong>{topik.soal.length}</strong></div>
             <div><span>Estimasi</span><strong>{topik.estimasiMenit} menit</strong></div>
-            <div><span>Terjawab benar</span><strong>{jumlahBenar}/{topik.soal.length}</strong></div>
+            <div><span>{sudahDikumpulkan ? "Nilai" : "Terisi"}</span><strong>{sudahDikumpulkan ? `${jumlahBenar}/${topik.soal.length}` : `${jumlahTerisi}/${topik.soal.length}`}</strong></div>
           </section>
         </aside>
       </div>

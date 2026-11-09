@@ -361,6 +361,7 @@ export default function App() {
               <div className="site-route-heading">
                 <div>
                   <span className="site-route-kicker">PHYSLAB / RUANG BELAJAR</span>
+                  <span className="site-route-separator" aria-hidden="true">/</span>
                   <span className="site-route-current">{JUDUL_HALAMAN[halamanAktif]}</span>
                 </div>
 

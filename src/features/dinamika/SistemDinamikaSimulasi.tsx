@@ -204,6 +204,14 @@ export default function SistemDinamikaSimulasi() {
     setRiwayatLift([awal]);
   };
 
+  // Reset tombol playback juga harus mengosongkan state posisi/kecepatan
+  // yang diintegrasikan terpisah dari jam simulasi.
+  const resetPlayback = () => {
+    playback.aturUlang();
+    resetGerak();
+    tarikanAktif.current = null;
+  };
+
   const ubahMode = (berikutnya: ModeSistem) => {
     setMode(berikutnya);
     playback.aturUlang();
@@ -212,8 +220,7 @@ export default function SistemDinamikaSimulasi() {
   };
 
   const reset = () => {
-    playback.aturUlang();
-    resetGerak();
+    resetPlayback();
     setMode("katrol");
     setMassaSatu(4);
     setMassaDua(6);
@@ -405,7 +412,7 @@ export default function SistemDinamikaSimulasi() {
                 <text x="18" y="332" fill="#91a1b8" fontSize="10">LANTAI DASAR</text>
               </svg>
               <p className="dinamika-status-line">{arahKatrol}</p>
-              <KontrolSimulasiDinamika waktu={playback.waktu} durasi={DURASI} berjalan={playback.berjalan} pengaliKecepatan={playback.pengaliKecepatan} tanpaBatas={playback.tanpaBatas} onUbahModeWaktu={playback.setTanpaBatas} onUbahWaktu={playback.aturWaktu} onMulaiJeda={playback.mulaiJeda} onAturUlang={playback.aturUlang} onUbahKecepatan={playback.setPengaliKecepatan} bisaGeser={false} />
+              <KontrolSimulasiDinamika waktu={playback.waktu} durasi={DURASI} berjalan={playback.berjalan} pengaliKecepatan={playback.pengaliKecepatan} tanpaBatas={playback.tanpaBatas} onUbahModeWaktu={playback.setTanpaBatas} onUbahWaktu={playback.aturWaktu} onMulaiJeda={playback.mulaiJeda} onAturUlang={resetPlayback} onUbahKecepatan={playback.setPengaliKecepatan} bisaGeser={false} />
             </section>
             <section className="metrics-grid dinamika-metrics-grid">
               <KartuBesaran label="Percepatan sistem" value={`${hasilKatrol.percepatan.toFixed(3)} m/s²`} ikon="a" aksen="mint" />
@@ -484,7 +491,7 @@ export default function SistemDinamikaSimulasi() {
                 {hasilLift.gayaNormal < 1e-8 ? "Kontak lantai hilang: model gaya normal dibatasi nol." : gerakLift.kecepatan === 0 ? "Kabin diam di lantai tujuan." : gerakLift.kecepatan > 0 ? "Kabin sedang bergerak naik; partikel udara mengikuti gerak kabin." : "Kabin sedang bergerak turun; partikel udara mengikuti gerak kabin."}
                 {` Percepatan aktual ${gerakLift.percepatan.toFixed(2)} m/s².`}
               </p>
-              <KontrolSimulasiDinamika waktu={playback.waktu} durasi={DURASI} berjalan={playback.berjalan} pengaliKecepatan={playback.pengaliKecepatan} tanpaBatas={playback.tanpaBatas} onUbahModeWaktu={playback.setTanpaBatas} onUbahWaktu={playback.aturWaktu} onMulaiJeda={playback.mulaiJeda} onAturUlang={playback.aturUlang} onUbahKecepatan={playback.setPengaliKecepatan} bisaGeser={false} />
+              <KontrolSimulasiDinamika waktu={playback.waktu} durasi={DURASI} berjalan={playback.berjalan} pengaliKecepatan={playback.pengaliKecepatan} tanpaBatas={playback.tanpaBatas} onUbahModeWaktu={playback.setTanpaBatas} onUbahWaktu={playback.aturWaktu} onMulaiJeda={playback.mulaiJeda} onAturUlang={resetPlayback} onUbahKecepatan={playback.setPengaliKecepatan} bisaGeser={false} />
             </section>
             <section className="metrics-grid dinamika-metrics-grid">
               <KartuBesaran label="Berat gravitasi" value={`${hasilLift.berat.toFixed(2)} N`} ikon="W" aksen="amber" />

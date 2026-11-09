@@ -7,7 +7,6 @@ import {
   periksaJawaban,
   simpanProgresProblemSet,
   type ProgresProblemSet,
-  type SoalProblemSet,
 } from "./dataProblemSet";
 import "./ProblemSet.css";
 
@@ -22,26 +21,62 @@ export default function ProblemSetPage() {
   }, [progres]);
 
   const topikAktif = BANK_SOAL_PROBLEM_SET.find((topik) => topik.id === topikAktifId) ?? null;
+  const topikSudahDikumpulkan = Boolean(topikAktif && progres.topikDikumpulkan?.[topikAktif.id]);
 
   function bukaTopik(topikId: string) {
     setTopikAktifId(topikId);
     setIndeksSoal(0);
   }
 
-  function periksaDanSimpan(soal: SoalProblemSet, jawaban: string) {
-    const benar = periksaJawaban(soal, jawaban);
+  function ubahDraf(soalId: string, jawaban: string) {
     setProgres((sebelumnya) => ({
       ...sebelumnya,
-      percobaan: {
-        ...sebelumnya.percobaan,
-        [soal.id]: {
-          jawaban,
-          benar,
-          diperiksa: true,
-          waktuDiperiksa: new Date().toISOString(),
-        },
-      },
+      drafJawaban: { ...sebelumnya.drafJawaban, [soalId]: jawaban },
     }));
+  }
+
+  function kumpulkanTopik() {
+    if (!topikAktif) return;
+    const jawabanTopik = topikAktif.soal.map((soal) => ({
+      soal,
+      jawaban: progres.drafJawaban?.[soal.id]?.trim() ?? "",
+    }));
+    if (jawabanTopik.some(({ jawaban }) => !jawaban)) return;
+
+    const waktuDiperiksa = new Date().toISOString();
+    const percobaanBaru = { ...progres.percobaan };
+    for (const { soal, jawaban } of jawabanTopik) {
+      percobaanBaru[soal.id] = {
+        jawaban,
+        benar: periksaJawaban(soal, jawaban),
+        diperiksa: true,
+        waktuDiperiksa,
+      };
+    }
+
+    setProgres((sebelumnya) => ({
+      ...sebelumnya,
+      percobaan: percobaanBaru,
+      topikDikumpulkan: { ...sebelumnya.topikDikumpulkan, [topikAktif.id]: true },
+    }));
+  }
+
+  function ulangiTopik() {
+    if (!topikAktif) return;
+    const idSoalTopik = new Set(topikAktif.soal.map((soal) => soal.id));
+    const percobaan = { ...progres.percobaan };
+    const drafJawaban = { ...progres.drafJawaban };
+    for (const id of idSoalTopik) {
+      delete percobaan[id];
+      delete drafJawaban[id];
+    }
+    setProgres((sebelumnya) => ({
+      ...sebelumnya,
+      percobaan,
+      drafJawaban,
+      topikDikumpulkan: { ...sebelumnya.topikDikumpulkan, [topikAktif.id]: false },
+    }));
+    setIndeksSoal(0);
   }
 
   if (!topikAktif) {
@@ -50,13 +85,17 @@ export default function ProblemSetPage() {
 
   return (
     <ProblemSetWorkspace
-      key={`${topikAktif.id}:${indeksSoal}`}
+      key={topikAktif.id}
       topik={topikAktif}
       indeksSoal={indeksSoal}
+      drafJawaban={progres.drafJawaban ?? {}}
       percobaan={progres.percobaan}
+      sudahDikumpulkan={topikSudahDikumpulkan}
       onKembali={() => setTopikAktifId(null)}
       onPilihSoal={setIndeksSoal}
-      onPeriksa={periksaDanSimpan}
+      onUbahDraf={ubahDraf}
+      onKumpulkan={kumpulkanTopik}
+      onUlangi={ulangiTopik}
     />
   );
 }
