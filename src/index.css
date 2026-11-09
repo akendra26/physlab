@@ -1,4 +1,16 @@
-/* Global reset and theme are defined in App.css. */
-:root { color-scheme: dark; }
-html { min-width: 320px; }
-body { margin: 0; }
+/* Aturan dasar aplikasi dimuat melalui App.css. */
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}

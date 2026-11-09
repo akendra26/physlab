@@ -1,463 +1,396 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import ProjectileCanvas from "./components/ProjectileCanvas";
-import MiniGraph from "./components/MiniGraph";
-import {
-  calculateState,
-  DEFAULT_PARAMS,
-  getSimulationMetrics,
-  type SimulationMode,
-  type SimulationParams,
-} from "./physics/projectile";
-import "./App.css";
+import { useEffect, useState } from "react";
 
-const MODE_INFO: Record<SimulationMode, { title: string; description: string }> = {
-  projectile: {
-    title: "Projectile motion",
-    description: "Explore two-dimensional motion under constant gravity, without air resistance.",
-  },
-  freefall: {
-    title: "Free fall",
-    description: "Release an object from a height and inspect its position and velocity over time.",
-  },
-  dynamics: {
-    title: "Newton's second law",
-    description: "Apply a horizontal force to a block and explore the effect of mass and friction.",
-  },
+import BerandaPage from "./features/beranda/BerandaPage";
+import KinematikaPage from "./features/kinematika/KinematikaPage";
+import DinamikaPage from "./features/dinamika/DinamikaPage";
+import TriviaKuisPage from "./features/trivia-kuis/TriviaKuisPage";
+import StudiKasusPage from "./features/studi-kasus/StudiKasusPage";
+import ProblemSetPage from "./features/problem-set/ProblemSetPage";
+
+import {
+  DAFTAR_MODUL_DINAMIKA,
+  DAFTAR_MODUL_KINEMATIKA,
+  type KategoriSimulasi,
+  type ModulDinamikaId,
+  type ModulKinematikaId,
+} from "./config/konfigurasiNavigasi";
+
+import "./App.css";
+import "./features/beranda/Beranda.css";
+
+type HalamanAktif = "beranda" | KategoriSimulasi;
+
+const RUTE_VALID: HalamanAktif[] = [
+  "beranda",
+  "kinematika",
+  "dinamika",
+  "trivia-kuis",
+  "studi-kasus",
+  "problem-set",
+];
+
+function bacaRute(): HalamanAktif {
+  if (typeof window === "undefined") return "beranda";
+
+  const hash = window.location.hash
+    .replace(/^#\/?/, "")
+    .toLowerCase();
+
+  if (hash === "trivia") return "trivia-kuis";
+  if (hash === "simulasi") return "kinematika";
+  if (hash === "studi-kasus") return "studi-kasus";
+  if (hash === "problem-set") return "problem-set";
+
+  return RUTE_VALID.includes(hash as HalamanAktif)
+    ? (hash as HalamanAktif)
+    : "beranda";
+}
+
+const JUDUL_HALAMAN: Record<HalamanAktif, string> = {
+  beranda: "Beranda",
+  "trivia-kuis": "Trivia & Kuis",
+  kinematika: "Simulasi Kinematika",
+  dinamika: "Simulasi Dinamika",
+  "studi-kasus": "Studi Kasus",
+  "problem-set": "Problem Set",
 };
 
-function App() {
-  const [mode, setMode] = useState<SimulationMode>("projectile");
-  const [params, setParams] = useState<SimulationParams>(DEFAULT_PARAMS);
-  const [playing, setPlaying] = useState(false);
-  const [simulationTime, setSimulationTime] = useState(0);
-  const [speedMultiplier, setSpeedMultiplier] = useState(1);
-  const [showVectors, setShowVectors] = useState(true);
-  const timeRef = useRef(0);
+export default function App() {
+  const [halamanAktif, setHalamanAktif] =
+    useState<HalamanAktif>(bacaRute);
 
-  const metrics = useMemo(
-    () => getSimulationMetrics(mode, params),
-    [mode, params],
-  );
-  const duration = metrics.duration;
+  const [modulKinematikaAktif, setModulKinematikaAktif] =
+    useState<ModulKinematikaId>("gerak-lurus");
 
-  const setClock = useCallback((time: number) => {
-    timeRef.current = time;
-    setSimulationTime(time);
-  }, []);
+  const [modulDinamikaAktif, setModulDinamikaAktif] =
+    useState<ModulDinamikaId>("newton");
 
-  const resetSimulation = useCallback(() => {
-    setPlaying(false);
-    setClock(0);
-  }, [setClock]);
+  const [simulasiTerbuka, setSimulasiTerbuka] =
+    useState(false);
+
+  const [mobileNavTerbuka, setMobileNavTerbuka] =
+    useState(false);
+
+  function navigasi(halaman: HalamanAktif) {
+    setHalamanAktif(halaman);
+    setMobileNavTerbuka(false);
+    setSimulasiTerbuka(false);
+
+    if (typeof window !== "undefined") {
+      const hash = halaman === "beranda" ? "#beranda" : `#${halaman}`;
+
+      if (window.location.hash !== hash) {
+        window.history.pushState({ halaman }, "", hash);
+      }
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function pilihKinematika(modul: ModulKinematikaId) {
+    setModulKinematikaAktif(modul);
+    setHalamanAktif("kinematika");
+    setSimulasiTerbuka(false);
+    setMobileNavTerbuka(false);
+
+    window.history.pushState(
+      { halaman: "kinematika", modul },
+      "",
+      "#kinematika",
+    );
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function pilihDinamika(modul: ModulDinamikaId) {
+    setModulDinamikaAktif(modul);
+    setHalamanAktif("dinamika");
+    setSimulasiTerbuka(false);
+    setMobileNavTerbuka(false);
+
+    window.history.pushState(
+      { halaman: "dinamika", modul },
+      "",
+      "#dinamika",
+    );
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   useEffect(() => {
-    if (!playing || duration <= 0) return;
-
-    let frameId = 0;
-    let previousTimestamp: number | null = null;
-
-    const animate = (timestamp: number) => {
-      if (previousTimestamp === null) previousTimestamp = timestamp;
-      const dt = Math.min((timestamp - previousTimestamp) / 1000, 0.05);
-      previousTimestamp = timestamp;
-
-      const nextTime = timeRef.current + dt * speedMultiplier;
-      if (nextTime >= duration) {
-        setClock(duration);
-        setPlaying(false);
-        return;
-      }
-
-      setClock(nextTime);
-      frameId = requestAnimationFrame(animate);
+    const sinkronkanRute = () => {
+      setHalamanAktif(bacaRute());
     };
 
-    frameId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frameId);
-  }, [playing, duration, speedMultiplier, setClock]);
+    window.addEventListener("popstate", sinkronkanRute);
+    window.addEventListener("hashchange", sinkronkanRute);
 
-  const updateParam = <K extends keyof SimulationParams>(
-    key: K,
-    value: SimulationParams[K],
-  ) => {
-    setParams((current) => ({ ...current, [key]: value }));
-    resetSimulation();
-  };
+    return () => {
+      window.removeEventListener("popstate", sinkronkanRute);
+      window.removeEventListener("hashchange", sinkronkanRute);
+    };
+  }, []);
 
-  const changeMode = (nextMode: SimulationMode) => {
-    setMode(nextMode);
-    setPlaying(false);
-    setClock(0);
-    if (nextMode === "freefall" && params.initialHeight === 0) {
-      setParams((current) => ({ ...current, initialHeight: 10 }));
+  useEffect(() => {
+    document.title =
+      halamanAktif === "beranda"
+        ? "PhysLAB — Laboratorium Fisika Interaktif"
+        : `${JUDUL_HALAMAN[halamanAktif]} — PhysLAB`;
+  }, [halamanAktif]);
+
+  const sedangDiSimulasi =
+    halamanAktif === "kinematika" || halamanAktif === "dinamika";
+
+  function renderHalaman() {
+    switch (halamanAktif) {
+      case "beranda":
+        return (
+          <BerandaPage
+            onMulaiSimulasi={() => pilihKinematika("gerak-lurus")}
+            onEksplorasiStudiKasus={() => navigasi("studi-kasus")}
+            onPilihTrivia={() => navigasi("trivia-kuis")}
+            onPilihProblemSet={() => navigasi("problem-set")}
+          />
+        );
+
+      case "kinematika":
+        return <KinematikaPage modulAktif={modulKinematikaAktif} />;
+
+      case "dinamika":
+        return <DinamikaPage modulAktif={modulDinamikaAktif} />;
+
+      case "trivia-kuis":
+        return <TriviaKuisPage />;
+
+      case "studi-kasus":
+        return <StudiKasusPage />;
+
+      case "problem-set":
+        return <ProblemSetPage />;
+
+      default:
+        return null;
     }
-  };
-
-  const samples = useMemo(() => {
-    const count = 101;
-    return Array.from({ length: count }, (_, i) =>
-      calculateState(mode, params, duration * i / (count - 1)),
-    );
-  }, [mode, params, duration]);
-
-  const graphs = mode === "projectile"
-    ? [
-        { title: "Horizontal position", yLabel: "x (m)", values: samples.map((s) => s.x), color: "#55e0c1" },
-        { title: "Vertical position", yLabel: "y (m)", values: samples.map((s) => s.y), color: "#8ea7ff" },
-        { title: "Horizontal velocity", yLabel: "vx (m/s)", values: samples.map((s) => s.vx), color: "#f6bd60" },
-        { title: "Vertical velocity", yLabel: "vy (m/s)", values: samples.map((s) => s.vy), color: "#f28e8e" },
-      ]
-    : mode === "freefall"
-      ? [
-          { title: "Height vs. time", yLabel: "y (m)", values: samples.map((s) => s.y), color: "#8ea7ff" },
-          { title: "Vertical velocity", yLabel: "vy (m/s)", values: samples.map((s) => s.vy), color: "#f28e8e" },
-        ]
-      : [
-          { title: "Displacement", yLabel: "x (m)", values: samples.map((s) => s.x), color: "#55e0c1" },
-          { title: "Velocity", yLabel: "v (m/s)", values: samples.map((s) => s.vx), color: "#8ea7ff" },
-          { title: "Acceleration", yLabel: "a (m/s²)", values: samples.map((s) => s.ax), color: "#f6bd60" },
-        ];
-
-  const exportCsv = () => {
-    const rows = [
-      ["time_s", "x_m", "y_m", "vx_m_s", "vy_m_s", "ax_m_s2", "ay_m_s2"],
-      ...samples.map((s) => [
-        s.t.toFixed(5), s.x.toFixed(6), s.y.toFixed(6),
-        s.vx.toFixed(6), s.vy.toFixed(6), s.ax.toFixed(6), s.ay.toFixed(6),
-      ]),
-    ];
-    const csv = rows.map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `physlab-${mode}-data.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const atEnd = duration <= 0 || simulationTime >= duration - 1e-5;
-  const playLabel = playing ? "Pause" : atEnd ? "Replay" : "Play";
+  }
 
   return (
-    <main className="app-shell">
-      <header className="topbar">
-        <a className="brand" href="#top" aria-label="PhysLab home">
-          <span className="brand-mark">φ</span>
-          <span>Phys<span className="brand-accent">Lab</span></span>
+    <div
+      className={`site-shell ${
+        halamanAktif === "beranda" ? "site-shell-home" : "site-shell-app"
+      }`}
+    >
+      <header
+        className={`site-header ${
+          halamanAktif !== "beranda" ? "site-header-solid" : ""
+        }`}
+      >
+        <a
+          className="site-brand"
+          href="#beranda"
+          aria-label="PhysLAB — kembali ke beranda"
+          onClick={(event) => {
+            event.preventDefault();
+            navigasi("beranda");
+          }}
+        >
+          <span className="site-brand-symbol" aria-hidden="true">
+            <svg viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="15.5" stroke="currentColor" strokeWidth="1.4" opacity=".72" />
+              <ellipse cx="20" cy="20" rx="7" ry="16" stroke="currentColor" strokeWidth="1.4" transform="rotate(42 20 20)" />
+              <circle cx="20" cy="20" r="3" fill="currentColor" />
+            </svg>
+          </span>
+          <span className="site-brand-word">
+            Phys<span>LAB</span>
+          </span>
         </a>
-        <div className="topbar-right">
-          <span className="live-dot" />
-          <span>INTERACTIVE PHYSICS</span>
-          <span className="version-tag">BETA 1.0</span>
-        </div>
+
+        <button
+          className="site-mobile-toggle"
+          type="button"
+          aria-label={mobileNavTerbuka ? "Tutup navigasi" : "Buka navigasi"}
+          aria-expanded={mobileNavTerbuka}
+          onClick={() => setMobileNavTerbuka((terbuka) => !terbuka)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+        <nav
+          className={`site-nav ${mobileNavTerbuka ? "site-nav-open" : ""}`}
+          aria-label="Navigasi utama"
+        >
+          <button
+            type="button"
+            className={`site-nav-link ${halamanAktif === "trivia-kuis" ? "is-active" : ""}`}
+            onClick={() => navigasi("trivia-kuis")}
+          >
+            Trivia
+          </button>
+
+          <div className="site-nav-dropdown-wrap">
+            <button
+              type="button"
+              className={`site-nav-link site-nav-simulation ${sedangDiSimulasi ? "is-active" : ""}`}
+              aria-expanded={simulasiTerbuka}
+              aria-haspopup="true"
+              onClick={() => setSimulasiTerbuka((terbuka) => !terbuka)}
+            >
+              Simulasi
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <path d="m2 4.5 4 4 4-4" />
+              </svg>
+            </button>
+
+            {simulasiTerbuka && (
+              <div className="site-nav-dropdown site-nav-dropdown-simulation">
+                <div className="site-dropdown-label">PILIH SUB-MENU SIMULASI</div>
+
+                <section className="site-simulation-group" aria-label="Sub-menu Kinematika">
+                  <div className="site-simulation-group-title">
+                    <span className="site-simulation-group-icon">↗</span>
+                    <span>Kinematika</span>
+                    <small>5 sub-menu</small>
+                  </div>
+
+                  <div className="site-simulation-items">
+                    {DAFTAR_MODUL_KINEMATIKA.map((modul, indeks) => {
+                      const aktif =
+                        halamanAktif === "kinematika" &&
+                        modulKinematikaAktif === modul.id;
+
+                      return (
+                        <button
+                          key={modul.id}
+                          type="button"
+                          className={aktif ? "is-selected" : ""}
+                          onClick={() => pilihKinematika(modul.id)}
+                        >
+                          <span className="site-simulation-number">
+                            {String(indeks + 1).padStart(2, "0")}
+                          </span>
+                          <span className="site-simulation-copy">
+                            <strong>{modul.nama}</strong>
+                            <small>{modul.singkatan}</small>
+                          </span>
+                          <span className="site-simulation-check">
+                            {aktif ? "●" : "→"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <section className="site-simulation-group" aria-label="Sub-menu Dinamika">
+                  <div className="site-simulation-group-title">
+                    <span className="site-simulation-group-icon">Σ</span>
+                    <span>Dinamika</span>
+                    <small>3 sub-menu</small>
+                  </div>
+
+                  <div className="site-simulation-items">
+                    {DAFTAR_MODUL_DINAMIKA.map((modul, indeks) => {
+                      const aktif =
+                        halamanAktif === "dinamika" &&
+                        modulDinamikaAktif === modul.id;
+
+                      return (
+                        <button
+                          key={modul.id}
+                          type="button"
+                          className={aktif ? "is-selected" : ""}
+                          onClick={() => pilihDinamika(modul.id)}
+                        >
+                          <span className="site-simulation-number">
+                            {String(indeks + 1).padStart(2, "0")}
+                          </span>
+                          <span className="site-simulation-copy">
+                            <strong>{modul.nama}</strong>
+                            <small>{modul.singkatan}</small>
+                          </span>
+                          <span className="site-simulation-check">
+                            {aktif ? "●" : "→"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <div className="site-simulation-footnote">
+                  Pilih sub-menu untuk langsung membuka simulasi yang diinginkan.
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className={`site-nav-link ${halamanAktif === "studi-kasus" ? "is-active" : ""}`}
+            onClick={() => navigasi("studi-kasus")}
+          >
+            Studi Kasus
+          </button>
+
+          <button
+            type="button"
+            className={`site-nav-link ${halamanAktif === "problem-set" ? "is-active" : ""}`}
+            onClick={() => navigasi("problem-set")}
+          >
+            Problem Set
+          </button>
+        </nav>
       </header>
 
-      <section className="hero" id="top">
-        <div className="hero-copy">
-          <p className="eyebrow">LEARN BY EXPERIMENTING</p>
-          <h1>Physics you can <span>feel.</span></h1>
-          <p className="hero-description">
-            Change the conditions. Watch what happens. Understand why.
-            A hands-on laboratory for motion, forces, and the equations between them.
-          </p>
-        </div>
-        <div className="hero-equation" aria-label="Newton's second law">
-          <span className="equation-symbol">F</span>
-          <span className="equation-equals">=</span>
-          <span className="equation-symbol">ma</span>
-          <span className="equation-caption">THE LANGUAGE OF MOTION</span>
-        </div>
-      </section>
+      <main
+        className={halamanAktif === "beranda" ? "site-home-main" : "site-route-main"}
+        data-active-category={halamanAktif}
+        data-active-module={
+          halamanAktif === "kinematika"
+            ? modulKinematikaAktif
+            : halamanAktif === "dinamika"
+              ? modulDinamikaAktif
+              : undefined
+        }
+      >
+        <div key={`${halamanAktif}-${modulKinematikaAktif}-${modulDinamikaAktif}`} className="site-route-transition">
+          {halamanAktif === "beranda" ? (
+            renderHalaman()
+          ) : (
+            <div className="site-route-container">
+              <div className="site-route-heading">
+                <div>
+                  <span className="site-route-kicker">PHYSLAB / RUANG BELAJAR</span>
+                  <span className="site-route-current">{JUDUL_HALAMAN[halamanAktif]}</span>
+                </div>
 
-      <nav className="mode-tabs" aria-label="Choose simulation">
-        {([
-          ["projectile", "↗", "Projectile"],
-          ["freefall", "↓", "Free fall"],
-          ["dynamics", "▰", "Dynamics"],
-        ] as const).map(([key, icon, label]) => (
-          <button
-            key={key}
-            className={`mode-tab ${mode === key ? "active" : ""}`}
-            onClick={() => changeMode(key)}
-            aria-pressed={mode === key}
-          >
-            <span className="mode-icon">{icon}</span>
-            {label}
-          </button>
-        ))}
-      </nav>
+                {halamanAktif === "kinematika" && (
+                  <span className="site-route-module-label">
+                    {DAFTAR_MODUL_KINEMATIKA.find((item) => item.id === modulKinematikaAktif)?.nama}
+                  </span>
+                )}
 
-      <section className="workspace">
-        <aside className="control-panel panel">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">EXPERIMENT SETUP</p>
-              <h2>Parameters</h2>
-            </div>
-            <span className="settings-icon">☷</span>
-          </div>
-
-          {mode === "projectile" && (
-            <>
-              <ParameterControl
-                label="Initial speed"
-                value={params.speed}
-                min={0}
-                max={50}
-                step={0.5}
-                unit="m/s"
-                onChange={(value) => updateParam("speed", value)}
-              />
-              <ParameterControl
-                label="Launch angle"
-                value={params.angleDeg}
-                min={0}
-                max={90}
-                step={1}
-                unit="°"
-                onChange={(value) => updateParam("angleDeg", value)}
-              />
-              <ParameterControl
-                label="Initial height"
-                value={params.initialHeight}
-                min={0}
-                max={50}
-                step={0.5}
-                unit="m"
-                onChange={(value) => updateParam("initialHeight", value)}
-              />
-            </>
-          )}
-
-          {mode === "freefall" && (
-            <ParameterControl
-              label="Release height"
-              value={params.initialHeight}
-              min={0}
-              max={100}
-              step={1}
-              unit="m"
-              onChange={(value) => updateParam("initialHeight", value)}
-            />
-          )}
-
-          {mode === "dynamics" && (
-            <>
-              <ParameterControl
-                label="Applied force"
-                value={params.force}
-                min={0}
-                max={100}
-                step={1}
-                unit="N"
-                onChange={(value) => updateParam("force", value)}
-              />
-              <ParameterControl
-                label="Mass"
-                value={params.mass}
-                min={1}
-                max={20}
-                step={0.5}
-                unit="kg"
-                onChange={(value) => updateParam("mass", value)}
-              />
-              <ParameterControl
-                label="Friction coefficient"
-                value={params.friction}
-                min={0}
-                max={1}
-                step={0.01}
-                unit=""
-                onChange={(value) => updateParam("friction", value)}
-              />
-            </>
-          )}
-
-          <ParameterControl
-            label="Gravity"
-            value={params.gravity}
-            min={1}
-            max={20}
-            step={0.01}
-            unit="m/s²"
-            onChange={(value) => updateParam("gravity", value)}
-          />
-
-          <div className="control-divider" />
-          <div className="control-note">
-            <span className="note-icon">ⓘ</span>
-            <p>
-              {mode === "dynamics"
-                ? "Simplified horizontal block model. Static and kinetic friction use the same coefficient."
-                : "Ideal model: air resistance is ignored and gravity is constant."}
-            </p>
-          </div>
-          <button className="secondary-button full-width" onClick={() => {
-            setParams(DEFAULT_PARAMS);
-            setMode("projectile");
-            setSpeedMultiplier(1);
-            setShowVectors(true);
-            resetSimulation();
-          }}>
-            <span>↺</span> Restore defaults
-          </button>
-        </aside>
-
-        <div className="main-column">
-          <section className="simulation-panel panel">
-            <div className="simulation-header">
-              <div>
-                <p className="eyebrow">LIVE SIMULATION</p>
-                <h2>{MODE_INFO[mode].title}</h2>
-                <p className="section-description">{MODE_INFO[mode].description}</p>
-              </div>
-              <span className="model-badge"><span /> MODEL ACTIVE</span>
-            </div>
-
-            <ProjectileCanvas
-              mode={mode}
-              params={params}
-              time={Math.min(simulationTime, duration)}
-              showVectors={showVectors}
-            />
-
-            <div className="timeline-row">
-              <span className="time-readout">{simulationTime.toFixed(2)} <small>s</small></span>
-              <input
-                className="timeline"
-                aria-label="Simulation time"
-                type="range"
-                min={0}
-                max={Math.max(duration, 0.01)}
-                step={Math.max(duration / 500, 0.001)}
-                value={Math.min(simulationTime, Math.max(duration, 0.01))}
-                onChange={(event) => {
-                  setPlaying(false);
-                  setClock(Number(event.target.value));
-                }}
-              />
-              <span className="time-total">{duration.toFixed(2)} s</span>
-            </div>
-
-            <div className="playback-row">
-              <div className="playback-buttons">
-                <button className="play-button" onClick={() => {
-                  if (playing) {
-                    setPlaying(false);
-                  } else {
-                    if (atEnd) setClock(0);
-                    if (duration > 0) setPlaying(true);
-                  }
-                }} disabled={duration <= 0}>
-                  <span>{playing ? "Ⅱ" : "▶"}</span> {playLabel}
-                </button>
-                <button className="icon-button" onClick={resetSimulation} aria-label="Reset simulation" title="Reset">↺</button>
-              </div>
-              <div className="playback-options">
-                <label className="speed-select">
-                  <span>Speed</span>
-                  <select value={speedMultiplier} onChange={(event) => setSpeedMultiplier(Number(event.target.value))}>
-                    <option value={0.25}>0.25×</option>
-                    <option value={0.5}>0.5×</option>
-                    <option value={1}>1×</option>
-                    <option value={2}>2×</option>
-                  </select>
-                </label>
-                {mode === "projectile" && (
-                  <label className="toggle-control">
-                    <input type="checkbox" checked={showVectors} onChange={(event) => setShowVectors(event.target.checked)} />
-                    <span className="toggle-track" />
-                    <span>Velocity vector</span>
-                  </label>
+                {halamanAktif === "dinamika" && (
+                  <span className="site-route-module-label">
+                    {DAFTAR_MODUL_DINAMIKA.find((item) => item.id === modulDinamikaAktif)?.nama}
+                  </span>
                 )}
               </div>
+
+              <div className="page-content site-feature-content">
+                {renderHalaman()}
+              </div>
             </div>
-          </section>
-
-          <section className="metrics-grid">
-            <MetricCard label={mode === "dynamics" ? "Displacement at 5 s" : mode === "freefall" ? "Fall time" : "Flight time"}
-              value={mode === "dynamics" ? `${metrics.range.toFixed(2)} m` : `${metrics.duration.toFixed(2)} s`}
-              icon="◷" accent="mint" />
-            <MetricCard label={mode === "dynamics" ? "Final velocity" : mode === "freefall" ? "Impact speed" : "Horizontal range"}
-              value={mode === "dynamics" ? `${metrics.finalSpeed.toFixed(2)} m/s` : mode === "freefall" ? `${metrics.finalSpeed.toFixed(2)} m/s` : `${metrics.range.toFixed(2)} m`}
-              icon="↗" accent="blue" />
-            <MetricCard label={mode === "dynamics" ? "Acceleration" : mode === "freefall" ? "Release height" : "Maximum height"}
-              value={mode === "dynamics" ? `${metrics.acceleration.toFixed(2)} m/s²` : `${metrics.maxHeight.toFixed(2)} m`}
-              icon="⌁" accent="amber" />
-          </section>
+          )}
         </div>
-      </section>
+      </main>
 
-      <section className="analysis-section">
-        <div className="analysis-heading">
-          <div>
-            <p className="eyebrow">UNDER THE HOOD</p>
-            <h2>Motion analysis</h2>
-            <p className="section-description">Explore how the physical quantities change throughout the experiment.</p>
-          </div>
-          <button className="secondary-button" onClick={exportCsv}>↓ Export CSV</button>
-        </div>
-        <div className="graphs-grid">
-          {graphs.map((graph) => (
-            <MiniGraph
-              key={graph.title}
-              title={graph.title}
-              yLabel={graph.yLabel}
-              values={graph.values}
-              color={graph.color}
-            />
-          ))}
-        </div>
-      </section>
-
-      <footer className="footer">
-        <a className="brand footer-brand" href="#top"><span className="brand-mark">φ</span><span>Phys<span className="brand-accent">Lab</span></span></a>
-        <span>Built for curiosity. Powered by physics.</span>
-        <span className="footer-units">SI units · Idealized models</span>
-      </footer>
-    </main>
+      {halamanAktif !== "beranda" && (
+        <footer className="site-app-footer">
+          <span>PhysLAB · Belajar fisika melalui eksplorasi.</span>
+          <span>Fisika Kelas XI SMA · Satuan SI</span>
+        </footer>
+      )}
+    </div>
   );
 }
-
-type ParameterControlProps = {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  unit: string;
-  onChange: (value: number) => void;
-};
-
-function ParameterControl({ label, value, min, max, step, unit, onChange }: ParameterControlProps) {
-  return (
-    <label className="parameter-control">
-      <span className="parameter-label">{label}</span>
-      <span className="parameter-value">{value.toFixed(step < 1 ? 2 : 0)} <small>{unit}</small></span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-      <span className="range-labels"><span>{min} {unit}</span><span>{max} {unit}</span></span>
-    </label>
-  );
-}
-
-function MetricCard({ label, value, icon, accent }: { label: string; value: string; icon: string; accent: string }) {
-  return (
-    <article className={`metric-card accent-${accent}`}>
-      <div className="metric-topline">
-        <span>{label}</span>
-        <span className="metric-icon">{icon}</span>
-      </div>
-      <strong>{value}</strong>
-    </article>
-  );
-}
-
-export default App;

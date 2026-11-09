@@ -1,0 +1,1123 @@
+/* Peta Sejarah Fisika — glassmorphism twilight atlas */
+.peta-sejarah {
+  display: grid;
+  gap: 30px;
+  width: 100%;
+  color: #edf3ff;
+  animation: peta-enter .45s ease both;
+}
+
+@keyframes peta-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.peta-section-heading,
+.peta-gallery-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.peta-section-heading h2,
+.peta-gallery-heading h3 {
+  margin: 0;
+  color: #f2f5ff;
+  font: 600 clamp(1.45rem, 3vw, 2.05rem)/1.12 "Space Grotesk", sans-serif;
+  letter-spacing: -.045em;
+}
+
+.peta-section-heading > div > p:last-child,
+.peta-gallery-heading > div > p:last-child {
+  max-width: 710px;
+  margin: 9px 0 0;
+  color: #9eafc8;
+  font-size: .78rem;
+  line-height: 1.7;
+}
+
+.peta-heading-stats {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border: 1px solid rgba(142, 167, 255, .2);
+  border-radius: 11px;
+  background: rgba(142, 167, 255, .055);
+}
+
+.peta-heading-stats strong {
+  color: #f6c780;
+  font: 600 1.5rem "Space Grotesk", sans-serif;
+}
+
+.peta-heading-stats span,
+.peta-gallery-heading > span {
+  color: #7f96b8;
+  font: 500 .55rem "DM Mono", monospace;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.peta-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 285px;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.peta-map-stage,
+.peta-selected-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(139, 169, 222, .2);
+  border-radius: 17px;
+  background:
+    radial-gradient(ellipse at 78% 16%, rgba(119, 116, 185, .13), transparent 37%),
+    linear-gradient(145deg, rgba(16, 32, 57, .98), rgba(8, 19, 37, .98));
+  box-shadow: 0 18px 55px rgba(3, 8, 19, .22), inset 0 1px rgba(255,255,255,.035);
+}
+
+.peta-map-stage::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent 20%, rgba(160, 190, 255, .035) 50%, transparent 75%);
+  pointer-events: none;
+  content: "";
+}
+
+.peta-map-topbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 17px 0;
+  color: #8399b9;
+  font: 500 .54rem "DM Mono", monospace;
+  letter-spacing: .11em;
+}
+
+.peta-map-topbar > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #b9d5d8;
+}
+
+.peta-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #63e4c8;
+  box-shadow: 0 0 12px rgba(99, 228, 200, .9);
+  animation: peta-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes peta-pulse {
+  50% { opacity: .45; box-shadow: 0 0 4px rgba(99,228,200,.35); }
+}
+
+.peta-world-svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 300px;
+  overflow: visible;
+}
+
+.peta-graticule line,
+.peta-inset-grid line {
+  stroke: rgba(148, 174, 215, .12);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+}
+
+.peta-continents path {
+  fill: url(#peta-land);
+  stroke: rgba(163, 195, 222, .38);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .14));
+}
+
+.peta-tracker-line {
+  stroke: #ffcb87;
+  stroke-width: 2.2;
+  stroke-dasharray: 5 8;
+  stroke-linecap: round;
+  opacity: .9;
+  filter: drop-shadow(0 0 5px rgba(255, 184, 111, .8));
+  animation: peta-tracker-flow 16s linear infinite;
+}
+
+.peta-tracker-world { stroke-width: 2.6; }
+.peta-tracker-inset { stroke-width: 2.8; }
+
+@keyframes peta-tracker-flow {
+  to { stroke-dashoffset: -180; }
+}
+
+.peta-marker {
+  cursor: pointer;
+  outline: none;
+  transition: opacity .2s ease;
+}
+
+.peta-marker-halo {
+  fill: rgba(255, 193, 117, .12);
+  stroke: rgba(255, 201, 136, .3);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: peta-marker-wave 2.3s ease-out infinite;
+}
+
+.peta-marker-core {
+  fill: #ffc477;
+  stroke: #fff2d9;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 6px rgba(255, 191, 112, .95));
+}
+
+.peta-marker-center { fill: #fffaf0; }
+
+.peta-marker-mint .peta-marker-core { fill: #61e4cb; stroke: #e0fff7; filter: drop-shadow(0 0 6px rgba(97, 228, 203, .95)); }
+.peta-marker-blue .peta-marker-core { fill: #91b6ff; stroke: #e8efff; filter: drop-shadow(0 0 6px rgba(145, 182, 255, .95)); }
+.peta-marker-violet .peta-marker-core { fill: #b6a0ff; stroke: #f0eaff; filter: drop-shadow(0 0 6px rgba(182, 160, 255, .95)); }
+
+.peta-marker.is-active .peta-marker-halo {
+  fill: rgba(255, 202, 134, .28);
+  stroke: #ffe4ba;
+  stroke-width: 2;
+  animation-duration: 1.15s;
+}
+
+.peta-marker.is-active .peta-marker-core {
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 10px rgba(255, 207, 143, 1));
+}
+
+.peta-marker:focus-visible .peta-marker-core {
+  stroke: white;
+  stroke-width: 3;
+}
+
+@keyframes peta-marker-wave {
+  0% { opacity: .9; transform: scale(.7); }
+  75%, 100% { opacity: 0; transform: scale(1.9); }
+}
+
+.peta-marker-label {
+  fill: #e8efff;
+  font: 600 10px "DM Mono", monospace;
+  paint-order: stroke;
+  stroke: #0a1930;
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.peta-world-caption text {
+  fill: #66809f;
+  font: 9px "DM Mono", monospace;
+  letter-spacing: 1.4px;
+}
+
+.peta-europe-inset {
+  position: absolute;
+  z-index: 3;
+  right: 15px;
+  bottom: 43px;
+  width: min(39%, 350px);
+  padding: 9px;
+  border: 1px solid rgba(157, 184, 225, .32);
+  border-radius: 12px;
+  background: rgba(8, 21, 41, .91);
+  box-shadow: 0 12px 34px rgba(1, 7, 17, .42), 0 0 25px rgba(132, 165, 226, .09);
+  backdrop-filter: blur(14px);
+}
+
+.peta-inset-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 1px 2px 7px;
+}
+
+.peta-inset-heading span {
+  color: #8299b7;
+  font: 500 .48rem "DM Mono", monospace;
+  letter-spacing: .13em;
+}
+
+.peta-inset-heading strong {
+  color: #f1d2a6;
+  font: 600 .65rem "Space Grotesk", sans-serif;
+}
+
+.peta-europe-inset svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  border: 1px solid rgba(141, 172, 212, .13);
+  border-radius: 7px;
+}
+
+.peta-inset-land {
+  fill: rgba(95, 126, 157, .45);
+  stroke: rgba(171, 198, 226, .42);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.peta-europe-inset > p {
+  margin: 6px 2px 0;
+  color: #788eaa;
+  font-size: .53rem;
+  line-height: 1.4;
+}
+
+.peta-map-legend {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 0 16px 14px;
+}
+
+.peta-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #8ca2bf;
+  font: .52rem "DM Mono", monospace;
+}
+
+.legend-pin {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #61e4cb;
+  box-shadow: 0 0 8px #61e4cb;
+}
+
+.legend-route {
+  width: 19px;
+  border-top: 2px dashed #ffc477;
+}
+
+.peta-selected-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 18px;
+}
+
+.peta-selected-kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #8299b7;
+  font: 500 .52rem "DM Mono", monospace;
+  letter-spacing: .1em;
+}
+
+.peta-selected-kicker span:last-child { color: #f0bf7d; }
+
+.peta-selected-symbol {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 22px 0 16px;
+  border: 1px solid rgba(255, 196, 119, .4);
+  border-radius: 17px;
+  background: radial-gradient(circle, rgba(255,196,119,.2), rgba(255,196,119,.035));
+  color: #ffd59f;
+  font: 600 1.25rem "Space Grotesk", sans-serif;
+  box-shadow: 0 0 28px rgba(255, 180, 103, .1), inset 0 0 18px rgba(255, 196, 119, .06);
+}
+
+.peta-symbol-mint { color: #8af1dc; border-color: rgba(97,228,203,.4); background: rgba(97,228,203,.09); }
+.peta-symbol-blue { color: #a9c6ff; border-color: rgba(145,182,255,.4); background: rgba(145,182,255,.09); }
+.peta-symbol-violet { color: #c5b4ff; border-color: rgba(182,160,255,.4); background: rgba(182,160,255,.09); }
+
+.peta-selected-date {
+  color: #e5bd82;
+  font: 500 .58rem "DM Mono", monospace;
+  letter-spacing: .08em;
+}
+
+.peta-selected-panel h3 {
+  margin: 5px 0 0;
+  color: #f1f5ff;
+  font: 600 1.25rem "Space Grotesk", sans-serif;
+  letter-spacing: -.035em;
+}
+
+.peta-selected-person {
+  margin: 5px 0 18px;
+  color: #8ba3c2;
+  font-size: .67rem;
+}
+
+.peta-selected-panel h4 {
+  margin: 0 0 7px;
+  color: #f4d7ac;
+  font: 600 .88rem/1.35 "Space Grotesk", sans-serif;
+}
+
+.peta-selected-summary {
+  margin: 0;
+  color: #a8b8cf;
+  font-size: .68rem;
+  line-height: 1.7;
+}
+
+.peta-selected-field {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 17px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(147, 175, 214, .13);
+  border-bottom: 1px solid rgba(147, 175, 214, .13);
+}
+
+.peta-selected-field span,
+.peta-selected-field strong,
+.peta-selected-note strong {
+  font: 500 .53rem "DM Mono", monospace;
+  letter-spacing: .08em;
+}
+
+.peta-selected-field span { color: #7f96b5; }
+.peta-selected-field strong { color: #7fe5d1; }
+
+.peta-selected-note {
+  margin-top: 14px;
+  padding: 11px;
+  border: 1px solid rgba(145, 182, 255, .15);
+  border-radius: 9px;
+  background: rgba(145, 182, 255, .045);
+}
+
+.peta-selected-note strong {
+  color: #91b6ff;
+}
+
+.peta-selected-note p {
+  margin: 6px 0 0;
+  color: #a6b6ce;
+  font-size: .62rem;
+  line-height: 1.6;
+}
+
+.peta-selected-read {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 17px;
+  color: #ffd092;
+  font-size: .67rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.peta-selected-read:hover { color: #fff0d8; }
+.peta-selected-read span { font-size: 1rem; }
+
+.peta-gallery {
+  display: grid;
+  gap: 17px;
+}
+
+.peta-gallery-heading > span {
+  align-self: flex-start;
+  margin-top: 7px;
+}
+
+.peta-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+  perspective: 1200px;
+}
+
+.peta-history-card {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --shine-x: 50%;
+  --shine-y: 50%;
+  min-width: 0;
+}
+
+.peta-card-tilt {
+  height: 305px;
+  perspective: 1100px;
+  transform: rotateY(var(--tilt-x)) rotateX(var(--tilt-y));
+  transform-style: preserve-3d;
+  transition: transform .18s ease-out;
+}
+
+.peta-history-card.is-selected .peta-card-tilt {
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--card-accent) 20%, transparent));
+}
+
+.peta-card-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .72s cubic-bezier(.2,.72,.22,1);
+}
+
+.peta-card-flipper[data-flipped="true"] { transform: rotateY(180deg); }
+
+.peta-card-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--card-accent) 32%, rgba(147, 175, 214, .17));
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at var(--shine-x) var(--shine-y), color-mix(in srgb, var(--card-accent) 12%, transparent), transparent 40%),
+    linear-gradient(145deg, rgba(23, 43, 70, .98), rgba(9, 21, 40, .99));
+  box-shadow: inset 0 1px rgba(255,255,255,.06), 0 13px 30px rgba(1,7,18,.18);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.peta-card-front::before,
+.peta-card-back::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgba(255,255,255,.04), transparent 34%, transparent 70%, rgba(255,255,255,.035));
+  pointer-events: none;
+  content: "";
+}
+
+.peta-card-back { transform: rotateY(180deg); }
+
+.peta-card-topline {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 14px 0;
+  color: #8198b6;
+  font: 500 .48rem "DM Mono", monospace;
+  letter-spacing: .08em;
+}
+
+.peta-card-topline span:last-child { color: var(--card-accent); }
+
+.peta-card-visual {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 112px;
+  overflow: hidden;
+}
+
+.peta-card-orbit {
+  position: absolute;
+  width: 128px;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--card-accent) 25%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 30px color-mix(in srgb, var(--card-accent) 11%, transparent);
+}
+
+.peta-card-orbit-one { transform: scale(.72) rotateX(67deg); }
+.peta-card-orbit-two { transform: scale(1.1) rotateY(67deg) rotateX(18deg); opacity: .55; }
+
+.peta-card-symbol {
+  position: relative;
+  z-index: 1;
+  color: var(--card-accent);
+  font: 600 2.2rem "Space Grotesk", sans-serif;
+  text-shadow: 0 0 28px color-mix(in srgb, var(--card-accent) 46%, transparent);
+}
+
+.peta-card-spark {
+  position: absolute;
+  top: 22%;
+  right: 25%;
+  color: #ffe7bf;
+  font-size: .8rem;
+  text-shadow: 0 0 13px #ffc477;
+}
+
+.peta-card-front-copy {
+  position: relative;
+  padding: 0 15px 13px;
+}
+
+.peta-card-location {
+  color: var(--card-accent);
+  font: 500 .49rem "DM Mono", monospace;
+  letter-spacing: .1em;
+}
+
+.peta-card-front-copy h3 {
+  margin: 6px 0 4px;
+  color: #f2f5fc;
+  font: 600 .96rem/1.25 "Space Grotesk", sans-serif;
+  letter-spacing: -.025em;
+}
+
+.peta-card-front-copy p {
+  margin: 0;
+  color: #90a5c1;
+  font-size: .64rem;
+}
+
+.peta-card-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(157, 184, 225, .12);
+  color: #8499b5;
+  font: .47rem "DM Mono", monospace;
+  letter-spacing: .06em;
+}
+
+.peta-card-foot span:first-child { color: var(--card-accent); }
+
+.peta-card-back-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 16px 15px 13px;
+  overflow-y: auto;
+}
+
+.peta-card-back-copy h3 {
+  margin: 5px 0 8px;
+  color: #f5f2ec;
+  font: 600 .95rem "Space Grotesk", sans-serif;
+}
+
+.peta-card-back-copy > p {
+  margin: 0;
+  color: #b3c1d5;
+  font-size: .62rem;
+  line-height: 1.55;
+}
+
+.peta-card-contribution {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 9px;
+  border-left: 2px solid var(--card-accent);
+  background: rgba(255,255,255,.035);
+}
+
+.peta-card-contribution strong {
+  color: var(--card-accent);
+  font: 500 .48rem "DM Mono", monospace;
+  letter-spacing: .1em;
+}
+
+.peta-card-contribution span {
+  color: #d1dbea;
+  font-size: .59rem;
+  line-height: 1.5;
+}
+
+.peta-card-source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: auto;
+  padding-top: 9px;
+}
+
+.peta-card-source a {
+  color: #a9c5fb;
+  font-size: .53rem;
+  text-decoration: none;
+}
+
+.peta-card-source a:hover { color: #fff; text-decoration: underline; }
+
+.peta-card-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 1px 0;
+}
+
+.peta-card-actions button {
+  min-height: 31px;
+  padding: 6px 9px;
+  border: 1px solid rgba(141, 170, 215, .2);
+  border-radius: 7px;
+  background: rgba(18, 37, 62, .72);
+  color: #a9bad1;
+  font-size: .56rem;
+  cursor: pointer;
+  transition: border-color .18s ease, color .18s ease, background .18s ease;
+}
+
+.peta-card-actions button:hover {
+  border-color: color-mix(in srgb, var(--card-accent) 50%, transparent);
+  color: #f4f7ff;
+}
+
+.peta-card-actions .peta-card-flip-button {
+  border-color: color-mix(in srgb, var(--card-accent) 28%, transparent);
+  color: var(--card-accent);
+}
+
+.peta-data-note {
+  margin: -6px 0 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(145, 182, 255, .13);
+  border-radius: 9px;
+  background: rgba(145, 182, 255, .035);
+  color: #8195b2;
+  font-size: .62rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 1060px) {
+  .peta-map-layout { grid-template-columns: minmax(0, 1fr) 255px; }
+  .peta-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .peta-section-heading,
+  .peta-gallery-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .peta-map-layout { grid-template-columns: minmax(0, 1fr); }
+  .peta-selected-panel { min-height: 0; }
+  .peta-selected-read { margin-top: 16px; }
+  .peta-europe-inset {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: min(94%, 410px);
+    margin: -5px 10px 12px auto;
+  }
+  .peta-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .peta-card-grid { grid-template-columns: minmax(0, 1fr); }
+  .peta-card-tilt { height: 320px; }
+  .peta-map-topbar { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .peta-map-legend { flex-direction: column; gap: 7px; }
+  .peta-heading-stats { align-self: stretch; justify-items: start; }
+  .peta-world-svg { min-height: 210px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peta-sejarah,
+  .peta-live-dot,
+  .peta-marker-halo,
+  .peta-tracker-line {
+    animation: none !important;
+  }
+  .peta-card-tilt,
+  .peta-card-flipper,
+  .peta-card-actions button {
+    transition: none !important;
+  }
+}
+
+
+/* Tiga tab pada halaman Trivia: tetap mudah dipakai di layar kecil. */
+.trivia-switcher.trivia-switcher-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.switcher-icon-map {
+  border-color: rgba(246, 189, 96, .22);
+  background: rgba(246, 189, 96, .08);
+  color: #f6bd60;
+}
+
+@media (max-width: 760px) {
+  .trivia-switcher.trivia-switcher-three {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* =====================================================
+   INTERAKSI LANJUTAN: ZOOM, POP-UP, PANEL DETAIL
+   Tambahkan setelah seluruh CSS PetaSejarahFisika.css lama.
+   ===================================================== */
+
+.peta-map-layout {
+  transition: grid-template-columns .28s ease;
+}
+
+.peta-map-layout.is-detail-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.peta-map-stage {
+  min-width: 0;
+}
+
+.peta-map-toolbar {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 15px 10px;
+}
+
+.peta-map-toolbar .peta-map-topbar {
+  padding: 0;
+  flex: 1 1 170px;
+}
+
+.peta-map-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.peta-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border: 1px solid rgba(145, 182, 255, .22);
+  border-radius: 9px;
+  background: rgba(8, 20, 39, .78);
+  box-shadow: inset 0 1px rgba(255,255,255,.04);
+}
+
+.peta-zoom-controls button,
+.peta-detail-toggle {
+  min-height: 30px;
+  border: 1px solid rgba(145, 182, 255, .2);
+  border-radius: 6px;
+  background: rgba(145, 182, 255, .08);
+  color: #dce8fc;
+  cursor: pointer;
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    transform .18s ease;
+}
+
+.peta-zoom-controls button {
+  min-width: 30px;
+  padding: 3px 8px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.peta-zoom-controls button:hover:not(:disabled),
+.peta-detail-toggle:hover {
+  border-color: rgba(255, 196, 119, .55);
+  background: rgba(255, 196, 119, .12);
+  color: #ffe2b9;
+}
+
+.peta-zoom-controls button:active,
+.peta-detail-toggle:active {
+  transform: scale(.96);
+}
+
+.peta-zoom-controls button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.peta-zoom-controls > span {
+  min-width: 42px;
+  color: #9fb1cb;
+  font: 500 .57rem "DM Mono", monospace;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.peta-zoom-controls .peta-zoom-reset {
+  min-width: auto;
+  margin-left: 2px;
+  padding-inline: 9px;
+  color: #a9c5eb;
+  font-size: .56rem;
+}
+
+.peta-detail-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 5px 10px;
+  color: #f1ce9c;
+  font-size: .58rem;
+  white-space: nowrap;
+}
+
+.peta-detail-toggle > span {
+  font-size: .85rem;
+}
+
+/* Viewport clips the scaled SVG while keeping controls and inset fixed. */
+.peta-map-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  min-height: 250px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #0b1b34;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.peta-map-viewport:active {
+  cursor: grabbing;
+}
+
+.peta-map-zoom-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scale(1);
+  transform-origin: 50% 50%;
+  transition: transform .25s cubic-bezier(.2,.72,.22,1);
+  will-change: transform;
+}
+
+.peta-map-zoom-layer .peta-world-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: visible;
+}
+
+.peta-map-popup {
+  position: absolute;
+  z-index: 8;
+  width: min(270px, calc(100% - 24px));
+  padding: 12px 13px;
+  border: 1px solid rgba(255, 202, 139, .42);
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(255, 190, 121, .14), transparent 48%),
+    rgba(7, 20, 39, .94);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, .34),
+    0 0 24px rgba(255, 184, 111, .12),
+    inset 0 1px rgba(255,255,255,.06);
+  backdrop-filter: blur(15px);
+  animation: peta-popup-in .18s ease-out both;
+  transform: translate(10px, 8px);
+  pointer-events: auto;
+}
+
+.peta-map-popup.is-right {
+  transform: translate(calc(-100% - 10px), 8px);
+}
+
+@keyframes peta-popup-in {
+  from { opacity: 0; filter: blur(3px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+.peta-popup-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #d8b98c;
+  font: 500 .48rem "DM Mono", monospace;
+  letter-spacing: .08em;
+}
+
+.peta-popup-topline button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 6px;
+  background: rgba(255,255,255,.05);
+  color: #b8c7dd;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.peta-map-popup > strong {
+  display: block;
+  color: #f5f2ed;
+  font: 600 .93rem "Space Grotesk", sans-serif;
+}
+
+.peta-popup-person {
+  display: block;
+  margin-top: 3px;
+  color: #8faac9;
+  font-size: .6rem;
+}
+
+.peta-map-popup > p {
+  margin: 8px 0 10px;
+  color: #b4c2d6;
+  font-size: .62rem;
+  line-height: 1.55;
+}
+
+.peta-popup-detail-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid rgba(255, 196, 119, .23);
+  border-radius: 6px;
+  background: rgba(255, 196, 119, .08);
+  color: #ffd49b;
+  font-size: .58rem;
+  cursor: pointer;
+}
+
+.peta-popup-detail-link:hover {
+  background: rgba(255, 196, 119, .16);
+}
+
+.peta-zoom-hint {
+  margin-left: auto;
+  color: #7189aa !important;
+}
+
+.peta-selected-panel {
+  animation: peta-panel-in .22s ease both;
+}
+
+@keyframes peta-panel-in {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 760px) {
+  .peta-map-toolbar {
+    align-items: flex-start;
+  }
+
+  .peta-map-toolbar .peta-map-topbar {
+    flex-basis: 100%;
+  }
+
+  .peta-map-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .peta-map-viewport {
+    min-height: 205px;
+  }
+
+  .peta-map-popup {
+    width: min(245px, calc(100% - 20px));
+    padding: 9px 10px;
+  }
+
+  .peta-map-popup > p {
+    font-size: .56rem;
+  }
+
+  .peta-europe-inset {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: min(94%, 410px);
+    margin: 10px 10px 12px auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .peta-map-viewport {
+    min-height: 170px;
+  }
+
+  .peta-map-actions {
+    align-items: stretch;
+  }
+
+  .peta-detail-toggle {
+    flex: 1 1 auto;
+  }
+
+  .peta-zoom-hint {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peta-map-zoom-layer,
+  .peta-map-popup,
+  .peta-selected-panel {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+
+/* PEMBARUAN PETA: hapus inset Eropa, pan klik-kiri, zoom halus, offset penanda */
+.peta-map-layout { display:grid; grid-template-columns:minmax(0,1fr) 285px; gap:14px; align-items:stretch; }
+.peta-map-layout.is-detail-hidden { grid-template-columns:minmax(0,1fr); }
+.peta-map-viewport { position:relative; width:100%; aspect-ratio:2/1; min-height:280px; overflow:hidden; isolation:isolate; background:#0b1b34; cursor:grab; touch-action:none; user-select:none; }
+.peta-map-viewport.is-dragging { cursor:grabbing; }
+.peta-map-zoom-layer { position:absolute; inset:0; width:100%; height:100%; transform-origin:0 0; transition:transform .12s ease-out; will-change:transform; }
+.peta-map-viewport.is-dragging .peta-map-zoom-layer { transition:none; }
+.peta-map-zoom-layer .peta-world-svg { display:block; width:100%; height:100%; min-height:0; }
+.peta-marker { cursor:pointer; outline:none; }
+.peta-marker-leader { stroke:rgba(255,206,145,.58); stroke-width:1.15; stroke-dasharray:2 3; pointer-events:none; }
+.peta-marker-label { fill:#e8efff; font:600 9px 'DM Mono',monospace; paint-order:stroke; stroke:#0a1930; stroke-width:3px; stroke-linejoin:round; pointer-events:none; }
+.peta-marker-halo { fill:color-mix(in srgb,var(--marker-color,#ffc477) 17%,transparent); stroke:color-mix(in srgb,var(--marker-color,#ffc477) 60%,transparent); }
+.peta-marker-core { fill:var(--marker-color,#ffc477); stroke:#fff2d9; stroke-width:1.5; filter:drop-shadow(0 0 7px var(--marker-color,#ffc477)); }
+.peta-marker.is-active .peta-marker-core { stroke:#fff; stroke-width:2.5; }
+.peta-map-popup { position:absolute; z-index:12; width:250px; padding:12px 13px; border:1px solid rgba(255,202,139,.46); border-radius:11px; background:radial-gradient(circle at 85% 0%,rgba(255,190,121,.14),transparent 48%),rgba(7,20,39,.96); box-shadow:0 12px 34px rgba(0,0,0,.38),0 0 24px rgba(255,184,111,.12),inset 0 1px rgba(255,255,255,.06); backdrop-filter:blur(15px); animation:peta-popup-enter .18s ease-out both; }
+@keyframes peta-popup-enter { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+.peta-popup-topline { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; color:#d8b98c; font:500 .48rem 'DM Mono',monospace; letter-spacing:.08em; }
+.peta-popup-topline button { width:21px; height:21px; border:1px solid rgba(255,255,255,.15); border-radius:50%; background:rgba(255,255,255,.06); color:#fff; font-size:1rem; line-height:1; cursor:pointer; }
+.peta-map-popup > strong { display:block; color:#f5f2ed; font:600 .93rem 'Space Grotesk',sans-serif; }
+.peta-popup-person { display:block; margin-top:3px; color:#8faac9; font-size:.6rem; }
+.peta-map-popup > p { margin:8px 0 10px; color:#b4c2d6; font-size:.62rem; line-height:1.55; }
+.peta-popup-detail-link { display:flex; align-items:center; justify-content:space-between; width:100%; padding:7px 8px; border:1px solid rgba(255,196,119,.23); border-radius:6px; background:rgba(255,196,119,.08); color:#ffd49b; font-size:.58rem; cursor:pointer; }
+.peta-map-legend { display:flex; flex-wrap:wrap; align-items:center; gap:12px 17px; padding:0 16px 14px; }
+.peta-zoom-hint { margin-left:auto; color:#8198b4; font: .5rem 'DM Mono',monospace; }
+.peta-detail-toggle { white-space:nowrap; }
+@media (max-width:760px) { .peta-map-layout,.peta-map-layout.is-detail-hidden { grid-template-columns:minmax(0,1fr); }.peta-map-viewport { min-height:220px; }.peta-map-toolbar { align-items:flex-start; }.peta-map-actions { width:100%; justify-content:space-between; }.peta-map-popup { width:min(230px,calc(100% - 16px)); }.peta-zoom-hint { width:100%; margin-left:0; } }
+@media (max-width:480px) { .peta-map-viewport { min-height:175px; }.peta-map-popup { padding:9px; }.peta-map-popup > p { font-size:.56rem; }.peta-marker-label { font-size:8px; } }
+@media (prefers-reduced-motion:reduce) { .peta-map-zoom-layer,.peta-map-popup { transition:none!important; animation:none!important; } }

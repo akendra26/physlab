@@ -1,70 +1,41 @@
-# PhysLab
+# PhysLAB — Major Revision Trivia, Fun Fact, Peta, dan Kuis
 
-PhysLab is an interactive 2D physics learning website built with React, TypeScript, Vite, and Canvas.
+Paket ini adalah patch untuk folder `src/features/trivia-kuis/` pada proyek PhysLAB yang sudah ada. Tidak membuat proyek baru dan tidak menambahkan dependensi eksternal.
 
-## Features
+## Isi patch
 
-- Projectile motion with adjustable speed, launch angle, launch height, and gravity.
-- Free fall from a selectable height.
-- A simplified Newton's second-law block model with applied force, mass, and friction.
-- Play/pause/replay, timeline scrubbing, and simulation speed control.
-- Analytical metrics and position/velocity/acceleration graphs.
-- Export sampled model data to CSV.
-- Unit tests for physics calculations.
+- `TriviaKuisPage.tsx`: mengganti tab Trivia Sejarah menjadi Fun Fact Mekanika, Peta Penemuan, dan Kuis Konsep & Trivia.
+- `FunFactMekanika.tsx` + `dataFunFactMekanika.ts` + `FunFactMekanika.css`: buku fun fact dua halaman dengan navigasi halaman dan sumber bacaan.
+- `PetaSejarahFisika.tsx` + `PetaSejarahFisika.css`: tanpa inset Eropa; peta dapat di-pan dengan klik kiri/drag, zoom dengan tombol atau roda tetikus, pinpoint bercahaya, leader line untuk titik Eropa yang berdekatan, pop-up, toggle detail, tracker putus-putus, kartu tilt dan flip 3D.
+- `KuisFisika.tsx` + `dataKuis.ts`: mengganti bank soal lama dengan tepat 50 soal pilihan ganda konseptual/trivia, urutan acak per sesi, feedback instan, skor langsung, ringkasan, dan nilai terbaik tersimpan di localStorage.
+- `TriviaKuis.css`: styling tab dan kuis tambahan.
 
-## Requirements
+## Cara memasang
 
-- Node.js 20.19+ or 22.12+
-- npm
+Timpa file dengan nama yang sama pada:
 
-## Run locally
+`src/features/trivia-kuis/`
+
+Pastikan file data peta yang sudah ada tetap tersedia:
+
+`src/features/trivia-kuis/dataPetaSejarah.ts`
+
+Tidak perlu mengubah `App.tsx`, Sidebar, atau konfigurasi navigasi karena halaman Trivia sudah memuat `TriviaKuisPage`.
+
+Jalankan dari root proyek:
 
 ```bash
-npm install
+npm run build
 npm run dev
 ```
 
-Open the local URL printed by Vite (usually http://localhost:5173).
+## Catatan kompatibilitas
 
-## Tests and production build
+Proyek yang diperiksa menggunakan React + Vite dan belum memasang Tailwind CSS atau Framer Motion. Implementasi ini memakai CSS modular dan React API bawaan agar tidak membutuhkan dependensi tambahan.
 
-```bash
-npm test
-npm run lint
-npm run build
-npm run preview
-```
+## Verifikasi pada lingkungan kerja
 
-## Project structure
-
-```text
-src/
-  components/
-    MiniGraph.tsx
-    ProjectileCanvas.tsx
-  physics/
-    projectile.ts
-    projectile.test.ts
-  App.tsx
-  App.css
-  index.css
-  main.tsx
-```
-
-## Model assumptions
-
-### Projectile motion
-
-The model assumes constant gravity and no air resistance. The projectile launches with speed `speed` at `angleDeg` above the horizontal from `initialHeight`. It stops at the first return to ground level.
-
-### Free fall
-
-An object is released from rest at `initialHeight` and falls vertically under constant gravity.
-
-### Dynamics
-
-A simplified horizontal block starts from rest. A constant force acts to the right. The friction coefficient is used as both the static threshold and kinetic coefficient. The block remains at rest when the applied force is no greater than `mu * mass * gravity`; otherwise, it accelerates with `(force - mu * mass * gravity) / mass`. This is an educational approximation, not a full rigid-body/contact solver.
-
-## Notes
-
-The simulation runs in the browser; no backend or database is required. The graph components are intentionally dependency-light SVG so the app can run without a charting library.
+- TypeScript khusus aplikasi: lulus (`tsc --noEmit -p tsconfig.check.json`).
+- Pemeriksaan bank soal: 50 ID unik; setiap soal memiliki 4 opsi, kunci dalam rentang 0–3, dan pembahasan.
+- CSS parsing: tidak ditemukan kesalahan sintaks.
+- Build Vite penuh belum dapat dijalankan di lingkungan ekstraksi karena Vite CLI/dependensi node_modules tidak tersedia secara lengkap.
