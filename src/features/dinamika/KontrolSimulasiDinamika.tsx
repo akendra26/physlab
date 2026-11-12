@@ -11,7 +11,6 @@ type Props = {
   onAturUlang: () => void;
   onUbahKecepatan: (nilai: number) => void;
   onUbahModeWaktu?: (aktif: boolean) => void;
-  onStop?: () => void;
   bisaGeser?: boolean;
 };
 
@@ -26,7 +25,6 @@ export default function KontrolSimulasiDinamika({
   onAturUlang,
   onUbahKecepatan,
   onUbahModeWaktu,
-  onStop,
   bisaGeser = true,
 }: Props) {
   const ubahWaktu = (event: ChangeEvent<HTMLInputElement>) => onUbahWaktu(Number(event.target.value));
@@ -38,7 +36,6 @@ export default function KontrolSimulasiDinamika({
         <button type="button" className="tombol-jalan-dinamika" onClick={onMulaiJeda}>
           {berjalan ? "Ⅱ Jeda" : "▶ Mulai"}
         </button>
-        <button type="button" className="tombol-stop-dinamika" onClick={onStop ?? onAturUlang}>■ Stop</button>
         <button type="button" className="tombol-reset-dinamika" onClick={onAturUlang}>↺ Reset</button>
         <label className="label-kecepatan-dinamika">
           Kecepatan

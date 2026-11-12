@@ -580,3 +580,56 @@
     grid-column: auto;
   }
 }
+
+
+/* Kontrol sandbox Newton: tombol playback konsisten dengan kontrol simulasi lain. */
+.kontrol-simulasi-dinamika {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 13px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(8, 15, 27, .45);
+}
+.kontrol-simulasi-dinamika > button {
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #35475f;
+  border-radius: 7px;
+  background: #152236;
+  color: #dbe5f1;
+  font: 600 .68rem 'DM Mono', monospace;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+.kontrol-simulasi-dinamika > button:hover { border-color: var(--mint); background: #1a2b40; }
+.kontrol-simulasi-dinamika > .tombol-jalan-dinamika {
+  border-color: rgba(85,224,193,.5);
+  background: rgba(85,224,193,.12);
+  color: var(--mint);
+}
+.kontrol-simulasi-dinamika > .tombol-reset-dinamika { color: #c4cede; }
+.kontrol-simulasi-dinamika > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: .68rem;
+}
+.kontrol-simulasi-dinamika select {
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 1px solid #35475f;
+  border-radius: 6px;
+  background: #152236;
+  color: #e9eef8;
+}
+.kontrol-simulasi-dinamika output,
+.kontrol-simulasi-dinamika .infinite-time-readout {
+  color: #aebbd0;
+  font: .68rem 'DM Mono', monospace;
+}
+.kontrol-simulasi-dinamika input[type="range"] { accent-color: var(--mint); }

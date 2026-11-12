@@ -9,7 +9,6 @@ type Props = {
   onUbahWaktu: (waktu: number) => void;
   onMulaiJeda: () => void;
   onAturUlang: () => void;
-  onStop?: () => void;
   onUbahKecepatan: (kecepatan: number) => void;
   onUbahModeWaktu?: (tanpaBatas: boolean) => void;
   onUbahVektor?: (aktif: boolean) => void;
@@ -26,7 +25,6 @@ export default function KontrolWaktuSimulasi({
   onUbahWaktu,
   onMulaiJeda,
   onAturUlang,
-  onStop,
   onUbahKecepatan,
   onUbahModeWaktu,
   onUbahVektor,
@@ -62,7 +60,6 @@ export default function KontrolWaktuSimulasi({
           <button className="play-button" type="button" onClick={onMulaiJeda}>
             <span>{berjalan ? "Ⅱ" : "▶"}</span> {labelJalan}
           </button>
-          <button className="icon-button" type="button" onClick={onStop ?? onAturUlang} aria-label="Hentikan simulasi" title="Stop">■</button>
           <button className="icon-button" type="button" onClick={onAturUlang} aria-label="Atur ulang simulasi" title="Reset">↺</button>
         </div>
 

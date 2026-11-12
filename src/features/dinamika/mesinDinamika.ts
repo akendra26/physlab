@@ -335,6 +335,19 @@ export function langkahSandboxRuangBebas(
     }
   }
 
+  // Koreksi akhir setelah tumbukan antarbalok: pemisahan pasangan tidak boleh
+  // mendorong objek menembus dinding ruang simulasi.
+  if (batas) {
+    for (const item of hasil) {
+      item.x = Math.max(batas.kiri + lebar, Math.min(batas.kanan - lebar, item.x));
+      item.y = Math.max(batas.atas + tinggi, Math.min(batas.bawah - tinggi, item.y));
+      if (item.x <= batas.kiri + lebar + 1e-8 && item.vx < 0) item.vx = 0;
+      if (item.x >= batas.kanan - lebar - 1e-8 && item.vx > 0) item.vx = 0;
+      if (item.y <= batas.atas + tinggi + 1e-8 && item.vy < 0) item.vy = 0;
+      if (item.y >= batas.bawah - tinggi - 1e-8 && item.vy > 0) item.vy = 0;
+    }
+  }
+
   return hasil;
 }
 

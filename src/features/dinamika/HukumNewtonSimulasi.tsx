@@ -42,10 +42,10 @@ function KontrolSimulasiDinamika({
 }: PropsKontrolSimulasi) {
   return (
     <div className="kontrol-simulasi-dinamika">
-      <button type="button" onClick={onMulaiJeda}>
+      <button type="button" className="tombol-jalan-dinamika" onClick={onMulaiJeda}>
         {berjalan ? "Ⅱ Jeda" : "▶ Mulai"}
       </button>
-      <button type="button" onClick={onAturUlang}>■ Stop / Reset</button>
+      <button type="button" className="tombol-reset-dinamika" onClick={onAturUlang}>↺ Reset</button>
       {tanpaBatas ? (
         <span className="infinite-time-readout">t = {waktu.toFixed(1)} s · ∞</span>
       ) : (
@@ -136,7 +136,7 @@ export default function HukumNewtonSimulasi() {
           titikLantaiY: 390 / SKALA,
           lebarBalok: LEBAR_BALOK,
           tinggiBalok: TINGGI_BALOK,
-          batasKanvas: { kiri: 0, kanan: 800 / SKALA, atas: 0, bawah: 480 / SKALA },
+          batasKanvas: { kiri: 8 / SKALA, kanan: 792 / SKALA, atas: 8 / SKALA, bawah: 472 / SKALA },
         });
         waktuRef.current = tanpaBatas
           ? waktuRef.current + dt
@@ -197,8 +197,8 @@ export default function HukumNewtonSimulasi() {
       id,
       nama: `Balok ${id}`,
       massa: 3 + (id % 4),
-      x: batasi(x, 0.5, 11.8),
-      y: batasi(y, 0.45, 6.8),
+      x: batasi(x, 8 / SKALA + LEBAR_BALOK / 2, 792 / SKALA - LEBAR_BALOK / 2),
+      y: batasi(y, 8 / SKALA + TINGGI_BALOK / 2, 472 / SKALA - TINGGI_BALOK / 2),
       vx: 0,
       vy: 0,
       gayaX: 0,
@@ -279,8 +279,8 @@ export default function HukumNewtonSimulasi() {
     if (!titik) return;
     if (tarikan.jenis === "balok") {
       perbaruiBalok(tarikan.id, {
-        x: batasi((titik.x - tarikan.offsetX) / SKALA, LEBAR_BALOK / 2, 800 / SKALA - LEBAR_BALOK / 2),
-        y: batasi((titik.y - tarikan.offsetY) / SKALA, TINGGI_BALOK / 2, 480 / SKALA - TINGGI_BALOK / 2),
+        x: batasi((titik.x - tarikan.offsetX) / SKALA, 8 / SKALA + LEBAR_BALOK / 2, 792 / SKALA - LEBAR_BALOK / 2),
+        y: batasi((titik.y - tarikan.offsetY) / SKALA, 8 / SKALA + TINGGI_BALOK / 2, 472 / SKALA - TINGGI_BALOK / 2),
         vx: 0,
         vy: 0,
       });
@@ -309,6 +309,7 @@ export default function HukumNewtonSimulasi() {
     posisi.x = event.clientX;
     posisi.y = event.clientY;
     const lokal = posisi.matrixTransform(matriks.inverse());
+    if (lokal.x < 8 || lokal.x > 792 || lokal.y < 8 || lokal.y > 472) return;
     tambahBalok(lokal.x / SKALA, lokal.y / SKALA);
     event.stopPropagation();
   };
@@ -317,10 +318,30 @@ export default function HukumNewtonSimulasi() {
   const sudutRad = (sudutBidang * Math.PI) / 180;
   const tX = Math.cos(sudutRad);
   const tY = Math.sin(sudutRad);
-  const pX1 = posisiLantai.x - tX * 900;
-  const pY1 = posisiLantai.y - tY * 900;
-  const pX2 = posisiLantai.x + tX * 900;
-  const pY2 = posisiLantai.y + tY * 900;
+  // Potong bidang tepat pada dinding bagian dalam ruang simulasi (x=8..792, y=8..472).
+  const potongGarisBidang = () => {
+    const kiri = 8, kanan = 792, atas = 8, bawah = 472;
+    const kandidat: { x: number; y: number }[] = [];
+    const tambah = (x: number, y: number) => {
+      if (x >= kiri - 1e-6 && x <= kanan + 1e-6 && y >= atas - 1e-6 && y <= bawah + 1e-6 &&
+          !kandidat.some((p) => Math.hypot(p.x - x, p.y - y) < 0.5)) kandidat.push({ x, y });
+    };
+    if (Math.abs(tX) > 1e-8) {
+      tambah(kiri, posisiLantai.y + (kiri - posisiLantai.x) * tY / tX);
+      tambah(kanan, posisiLantai.y + (kanan - posisiLantai.x) * tY / tX);
+    }
+    if (Math.abs(tY) > 1e-8) {
+      tambah(posisiLantai.x + (atas - posisiLantai.y) * tX / tY, atas);
+      tambah(posisiLantai.x + (bawah - posisiLantai.y) * tX / tY, bawah);
+    }
+    if (kandidat.length < 2) return [{ x: posisiLantai.x, y: posisiLantai.y }, { x: posisiLantai.x, y: posisiLantai.y }];
+    return [kandidat[0], kandidat[1]];
+  };
+  const [ujungBidangSatu, ujungBidangDua] = potongGarisBidang();
+  const pX1 = ujungBidangSatu.x;
+  const pY1 = ujungBidangSatu.y;
+  const pX2 = ujungBidangDua.x;
+  const pY2 = ujungBidangDua.y;
   const pusatAktifX = balokAktif.x * SKALA;
   const pusatAktifY = balokAktif.y * SKALA;
   const ujungGayaX = pusatAktifX + balokAktif.gayaX * PIXEL_PER_NEWTON;
@@ -349,7 +370,7 @@ export default function HukumNewtonSimulasi() {
     { simbol: String.raw`p`, nama: "Momentum linear", satuan: "kg·m/s" },
     { simbol: String.raw`J`, nama: "Impuls selama selang waktu", satuan: "N·s" },
     { simbol: String.raw`e`, nama: "Koefisien restitusi tumbukan", satuan: "tanpa satuan" },
-    { simbol: String.raw`\theta`, nama: "Orientasi bidang tak berujung", satuan: "°" },
+    { simbol: String.raw`\theta`, nama: "Orientasi bidang simulasi terbatas", satuan: "°" },
   ];
 
   return (
@@ -381,7 +402,7 @@ export default function HukumNewtonSimulasi() {
           <ParameterSlider label="Komponen gaya vertikal (Fy)" value={balokAktif.gayaY} min={-BATAS_GAYA} max={BATAS_GAYA} step={1} unit="N" onChange={(nilai) => perbaruiBalok(balokAktif.id, { gayaY: nilai })} />
           <ParameterSlider label="Percepatan gravitasi" value={gravitasi} min={0} max={20} step={0.01} unit="m/s²" onChange={setGravitasi} />
           <ParameterSlider label="Rotasi bidang 360°" value={sudutBidang} min={0} max={360} step={1} unit="°" onChange={setSudutBidang} />
-          <p className="dinamika-control-note">Garis bidang adalah permukaan tak berujung. Balok dapat ditumpuk dan saling bertumbukan. Tarik lingkaran di ujung panah hijau ke arah horizontal maupun vertikal untuk mengatur Fx dan Fy sekaligus.</p>
+          <p className="dinamika-control-note">Garis bidang dibatasi dinding ruang simulasi. Balok dapat ditumpuk dan saling bertumbukan. Tarik lingkaran di ujung panah hijau ke arah horizontal maupun vertikal untuk mengatur Fx dan Fy sekaligus.</p>
         </aside>
 
         <div className="dinamika-main-column">
@@ -393,7 +414,7 @@ export default function HukumNewtonSimulasi() {
             <svg
               viewBox="0 0 800 480"
               role="img"
-              aria-label="Sandbox fisika dua dimensi dengan lantai tak berujung, balok yang dapat dipindah, tumbukan, dan vektor gaya bebas"
+              aria-label="Sandbox fisika dua dimensi dengan bidang terbatas, balok yang dapat dipindah, tumbukan, dan vektor gaya bebas"
               onPointerMove={gerakPenunjuk}
               onPointerUp={akhiriTarikan}
               onPointerCancel={akhiriTarikan}
@@ -405,7 +426,7 @@ export default function HukumNewtonSimulasi() {
                 </pattern>
                 <marker id="panah-gaya-2d" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#55e0c1" /></marker>
               </defs>
-              <rect x="0" y="0" width="800" height="480" fill="url(#kisi-sandbox-2d)" onPointerDown={klikArea} className="area-sandbox-spawn" />
+              <rect x="8" y="8" width="784" height="464" fill="url(#kisi-sandbox-2d)" onPointerDown={klikArea} className="area-sandbox-spawn" />
               <rect x="8" y="8" width="784" height="464" rx="10" fill="none" stroke="#91b6ff" strokeWidth="2" strokeDasharray="8 6" opacity=".85" />
               <line x1={pX1} y1={pY1} x2={pX2} y2={pY2} stroke="#71839b" strokeWidth="9" strokeLinecap="round" />
               <line x1={pX1} y1={pY1 - 7} x2={pX2} y2={pY2 - 7} stroke="#a9b8cb" strokeWidth="2" opacity=".45" />
@@ -470,13 +491,13 @@ export default function HukumNewtonSimulasi() {
       </div>
 
       <ModelMatematika
-        deskripsi="Model translasi dua dimensi untuk banyak balok pada bidang tak berujung. Setiap balok menerima gaya luar Fx dan Fy serta gravitasi; kontak lantai dan tumbukan antarbalok menghasilkan impuls dan perubahan momentum."
+        deskripsi="Model translasi dua dimensi untuk banyak balok pada bidang terbatas. Setiap balok menerima gaya luar Fx dan Fy serta gravitasi; kontak lantai dan tumbukan antarbalok menghasilkan impuls dan perubahan momentum."
         persamaan={persamaan}
         variabel={variabel}
         catatan={(
           <>
             <p>Gaya bebas dinyatakan sebagai vektor F = (Fx, Fy), dengan sumbu y positif ke bawah pada tampilan. Drag panah mengubah kedua komponen secara simultan.</p>
-            <p>Balok diperlakukan sebagai persegi panjang AABB, sedangkan bidang miring dihitung sebagai garis tak berujung yang dapat diputar 0°–360°. Tumbukan menggunakan koefisien restitusi 0,08 dan model gesekan kontak sederhana.</p>
+            <p>Balok diperlakukan sebagai persegi panjang AABB, sedangkan bidang miring dihitung sebagai garis bidang yang dapat diputar 0°–360°. Tumbukan menggunakan koefisien restitusi 0,08 dan model gesekan kontak sederhana.</p>
             <p>Model cocok untuk eksperimen konseptual momentum, impuls, tumbukan, dan penumpukan. Untuk analisis rekayasa presisi tinggi, diperlukan solver kontak rigid-body dengan sub-langkah adaptif dan rotasi setiap benda.</p>
           </>
         )}

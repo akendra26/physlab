@@ -424,7 +424,6 @@ export default function GerakLurusSimulasi() {
               }}
               onMulaiJeda={playback.mulaiJeda}
               onAturUlang={playback.aturUlang}
-              onStop={() => playback.setBerjalan(false)}
               onUbahKecepatan={playback.setPengaliKecepatan}
               onUbahVektor={setVektorAktif}
             />
