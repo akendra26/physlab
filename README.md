@@ -39,3 +39,6 @@ Proyek yang diperiksa menggunakan React + Vite dan belum memasang Tailwind CSS a
 - Pemeriksaan bank soal: 50 ID unik; setiap soal memiliki 4 opsi, kunci dalam rentang 0–3, dan pembahasan.
 - CSS parsing: tidak ditemukan kesalahan sintaks.
 - Build Vite penuh belum dapat dijalankan di lingkungan ekstraksi karena Vite CLI/dependensi node_modules tidak tersedia secara lengkap.
+
+## Dokumen Penjelasan Pemasangan Kodingan
+- https://drive.google.com/drive/folders/10-gdk9_xRc1r8i62xgR_lzheeqo0Kj-x?usp=sharing
