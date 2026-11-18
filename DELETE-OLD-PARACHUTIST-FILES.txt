@@ -1,0 +1,6 @@
+File penerjun yang perlu dihapus dari proyek lama bila masih ada:
+- src/features/kinematika/gerak-dua-dimensi/VisualisasiPenerjunPayung.tsx
+- src/features/kinematika/gerak-dua-dimensi/mesinPenerjunPayung.ts
+- src/features/kinematika/gerak-dua-dimensi/mesinPenerjunPayung.test.ts
+
+Pada full source paket revisi, file-file tersebut memang tidak ada. Helper jatuh bebas lama pada mesin gerak 2D juga sudah dihapus; GJB kini hanya ada pada mesin Gerak Vertikal.

@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import useCanvasDimensions from "../../../components/simulasi/useCanvasDimensions";
 import {
   calculateLinearMotionState,
   type LinearMotionMode,
@@ -11,6 +12,7 @@ type Props = {
   time: number;
   showVectors: boolean;
   showAxes?: boolean;
+  scaleMode?: "boundary-box" | "actual-scale";
 };
 
 const COLORS = {
@@ -30,21 +32,17 @@ export default function VisualisasiGerakLurus({
   time,
   showVectors,
   showAxes = true,
+  scaleMode = "boundary-box",
 }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { canvasRef, width, height, pixelRatio } = useCanvasDimensions(16 / 9, 220);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
     if (!canvas || !context) return;
 
-    const width = Math.max(320, canvas.clientWidth);
-    const height = 360;
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-
     canvas.width = Math.round(width * pixelRatio);
     canvas.height = Math.round(height * pixelRatio);
-    canvas.style.height = `${height}px`;
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
     const left = 48;
@@ -63,7 +61,7 @@ export default function VisualisasiGerakLurus({
     const rawMax = Math.max(params.initialPosition, ...trajectory);
     const rawSpan = Math.max(rawMax - rawMin, 1);
     const padding = rawSpan * 0.12;
-    const halfRange = Math.max(
+    const halfRange = scaleMode === "boundary-box" ? 25 : Math.max(
       Math.abs(params.initialPosition - rawMin),
       Math.abs(rawMax - params.initialPosition),
     ) + padding;
@@ -132,14 +130,20 @@ export default function VisualisasiGerakLurus({
     context.fillStyle = COLORS.text;
     context.fillText("x = 0", Math.min(width - 62, Math.max(left, zeroX + 5)), top);
 
+    // Clip the moving object and trail to the selected physical viewport.
+    context.save();
+    context.beginPath();
+    context.rect(left, top, plotWidth, height - top - bottom);
+    context.clip();
+
     // Jejak gerak dari posisi awal sampai posisi saat ini.
     const state = calculateLinearMotionState(
       mode,
       params,
-      Math.min(time, params.duration),
+      Math.max(0, time),
     );
     const initialX = toCanvasX(params.initialPosition);
-    const currentX = toCanvasX(state.x);
+    const currentX = toCanvasX(scaleMode === "boundary-box" ? Math.min(maxX, Math.max(minX, state.x)) : state.x);
 
     context.strokeStyle = COLORS.trail;
     context.lineWidth = 4;
@@ -189,6 +193,7 @@ export default function VisualisasiGerakLurus({
     context.arc(currentX, trackY, 10, 0, Math.PI * 2);
     context.fill();
     context.shadowBlur = 0;
+    context.restore();
 
     // Informasi numerik pada area visualisasi.
     context.fillStyle = COLORS.text;
@@ -198,14 +203,15 @@ export default function VisualisasiGerakLurus({
     context.fillText(`v = ${state.vx.toFixed(2)} m/s`, left + plotWidth * 0.36, 40);
     context.fillText(`a = ${state.ax.toFixed(2)} m/s²`, left + plotWidth * 0.70, 40);
     context.fillText("Posisi (m)", width - 92, height - 7);
-  }, [mode, params, time, showVectors, showAxes]);
+    context.fillText(scaleMode === "boundary-box" ? "BOUNDARY BOX · ±25 m dari x₀" : "ACTUAL SCALE · auto range", left + 8, height - 8);
+  }, [mode, params, time, showVectors, showAxes, scaleMode, width, height, pixelRatio]);
 
   return (
     <canvas
       ref={canvasRef}
       role="img"
       aria-label={`Visualisasi ${mode.toUpperCase()} pada lintasan satu dimensi`}
-      style={{ display: "block", width: "100%", borderRadius: 12 }}
+      style={{ display: "block", width: "100%", height, aspectRatio: `${width}/${height}`, borderRadius: 12 }}
     />
   );
 }

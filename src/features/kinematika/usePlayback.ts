@@ -42,7 +42,10 @@ export default function usePlayback(durasi: number) {
       const berikutnya = referensiWaktu.current + selang * pengaliKecepatan;
 
       if (!tanpaBatas && berikutnya >= durasi) {
-        aturWaktu(durasi);
+        // Jika parameter durasi diperkecil melewati t yang sudah tercapai,
+        // hentikan jam tanpa memundurkan atau me-reset waktu simulasi.
+        const waktuAkhir = referensiWaktu.current >= durasi ? referensiWaktu.current : durasi;
+        aturWaktu(waktuAkhir);
         setBerjalan(false);
         return;
       }

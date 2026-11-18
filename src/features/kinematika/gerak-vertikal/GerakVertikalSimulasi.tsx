@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { DockableControlPanel, useKinematicsScaleMode } from "../../../components/simulasi/SimulationExperience";
 import GrafikMini from "../../../components/simulasi/GrafikMini";
 import KartuBesaran from "../../../components/simulasi/KartuBesaran";
 import KontrolWaktuSimulasi from "../../../components/simulasi/KontrolWaktuSimulasi";
@@ -16,6 +17,7 @@ import {
 
 export default function GerakVertikalSimulasi() {
   const [parameter, setParameter] = useState<ParameterGerakVertikal>(PARAMETER_AWAL_GERAK_VERTIKAL);
+  const scaleMode = useKinematicsScaleMode();
   const [tampilkanVektor, setTampilkanVektor] = useState(true);
   const metrik = useMemo(() => hitungMetrikGerakVertikal(parameter), [parameter]);
   const playback = usePlayback(metrik.waktuTempuh);
@@ -54,7 +56,7 @@ export default function GerakVertikalSimulasi() {
     nilai: ParameterGerakVertikal[K],
   ) => {
     setParameter((sebelumnya) => ({ ...sebelumnya, [kunci]: nilai }));
-    playback.aturUlang();
+    // Keep t unchanged so the live physical state follows the edited parameter.
   };
 
   const ubahArah = (arah: ArahGerakVertikal) => {
@@ -97,7 +99,7 @@ export default function GerakVertikalSimulasi() {
         <p className="eyebrow">SIMULASI FISIKA / KINEMATIKA / GERAK VERTIKAL</p>
         <div className="page-title-row">
           <div>
-            <h1>Gerak Vertikal (Atas &amp; Bawah)</h1>
+            <h1>Gerak Vertikal</h1>
             <p className="page-description">
               Pelajari gerak benda pada sumbu vertikal dengan percepatan gravitasi konstan hingga menyentuh tanah.
             </p>
@@ -107,7 +109,7 @@ export default function GerakVertikalSimulasi() {
       </section>
 
       <section className="workspace">
-        <aside className="control-panel panel">
+        <DockableControlPanel><aside className="control-panel panel">
           <div className="panel-heading">
             <div>
               <p className="eyebrow">PENGATURAN EKSPERIMEN</p>
@@ -117,8 +119,16 @@ export default function GerakVertikalSimulasi() {
           </div>
 
           <div className="parameter-control">
-            <span className="parameter-label">Arah lemparan</span>
-            <div className="pilihan-mode" role="group" aria-label="Pilih arah lemparan">
+            <span className="parameter-label">Mode gerak vertikal</span>
+            <div className="pilihan-mode vertical-mode-options" role="group" aria-label="Pilih mode gerak vertikal">
+              <button
+                type="button"
+                className={parameter.arah === "jatuh-bebas" ? "pilihan-mode-aktif" : ""}
+                aria-pressed={parameter.arah === "jatuh-bebas"}
+                onClick={() => ubahArah("jatuh-bebas")}
+              >
+                ↓ Jatuh bebas (v₀ = 0)
+              </button>
               <button
                 type="button"
                 className={parameter.arah === "atas" ? "pilihan-mode-aktif" : ""}
@@ -145,9 +155,10 @@ export default function GerakVertikalSimulasi() {
             onChange={(nilai) => ubahParameter("tinggiAwal", nilai)}
           />
           <ParameterSlider
-            label="Besar kecepatan awal (v₀)"
-            value={parameter.kecepatanAwal}
+            label={parameter.arah === "jatuh-bebas" ? "Kecepatan awal (dikunci 0)" : "Besar kecepatan awal (v₀)"}
+            value={parameter.arah === "jatuh-bebas" ? 0 : parameter.kecepatanAwal}
             min={0} max={40} step={0.5} unit="m/s"
+            disabled={parameter.arah === "jatuh-bebas"}
             onChange={(nilai) => ubahParameter("kecepatanAwal", nilai)}
           />
           <ParameterSlider
@@ -164,24 +175,28 @@ export default function GerakVertikalSimulasi() {
               Sumbu positif mengarah ke atas. Gravitasi selalu mengarah ke bawah. Hambatan udara diabaikan.
               {parameter.arah === "atas"
                 ? " Benda mula-mula bergerak naik, berhenti sesaat di puncak, lalu turun."
-                : " Benda langsung bergerak turun sejak dilepaskan."}
+                : parameter.arah === "jatuh-bebas"
+                  ? " Benda dilepas tanpa kecepatan awal (v₀ = 0), lalu jatuh karena gravitasi."
+                  : " Benda langsung bergerak turun dengan kecepatan awal ke bawah."}
             </p>
           </div>
           <button className="secondary-button full-width" type="button" onClick={kembalikanAwal}>
             <span aria-hidden="true">↺</span> Kembalikan parameter awal
           </button>
-        </aside>
+        </aside></DockableControlPanel>
 
         <div className="main-column">
           <section className="simulation-panel panel">
             <div className="simulation-header">
               <div>
                 <p className="eyebrow">VISUALISASI LANGSUNG</p>
-                <h2>{parameter.arah === "atas" ? "Lemparan vertikal ke atas" : "Gerak vertikal ke bawah"}</h2>
+                <h2>{parameter.arah === "jatuh-bebas" ? "Gerak jatuh bebas · v₀ = 0" : parameter.arah === "atas" ? "Lemparan vertikal ke atas" : "Gerak vertikal ke bawah"}</h2>
                 <p className="section-description">
                   {parameter.arah === "atas"
                     ? `Benda mencapai titik tertinggi setelah ${metrik.waktuPuncak.toFixed(2)} s.`
-                    : "Benda bergerak ke bawah tanpa melalui fase naik."}
+                    : parameter.arah === "jatuh-bebas"
+                      ? "Benda dilepas dari keadaan diam dan kecepatannya bertambah akibat gravitasi."
+                      : "Benda bergerak ke bawah tanpa melalui fase naik."}
                 </p>
               </div>
               <span className="model-badge"><span /> MODEL IDEAL</span>
@@ -189,8 +204,9 @@ export default function GerakVertikalSimulasi() {
 
             <VisualisasiGerakVertikal
               parameter={parameter}
-              waktu={Math.min(waktuSaatIni, metrik.waktuTempuh)}
+              waktu={waktuSaatIni}
               tampilkanVektor={tampilkanVektor}
+              scaleMode={scaleMode}
             />
 
             <KontrolWaktuSimulasi
@@ -243,7 +259,9 @@ export default function GerakVertikalSimulasi() {
       <ModelMatematika
         deskripsi={parameter.arah === "atas"
           ? "Sumbu vertikal positif ke atas. Benda mula-mula bergerak naik dengan kecepatan awal positif, lalu turun akibat gravitasi."
-          : "Sumbu vertikal tetap positif ke atas. Benda bergerak turun sejak awal sehingga kecepatan awal bertanda negatif."}
+          : parameter.arah === "jatuh-bebas"
+            ? "Gerak jatuh bebas dimulai dari keadaan diam (v₀ = 0). Sumbu vertikal positif ke atas dan gravitasi bertanda negatif."
+            : "Sumbu vertikal tetap positif ke atas. Benda bergerak turun sejak awal sehingga kecepatan awal bertanda negatif."}
         persamaan={[
           { judul: "Posisi terhadap waktu", latex: String.raw`y(t)=h_0+v_0^*t-\frac{1}{2}gt^2` },
           { judul: "Kecepatan terhadap waktu", latex: String.raw`v_y(t)=v_0^*-gt` },
@@ -264,7 +282,7 @@ export default function GerakVertikalSimulasi() {
           { simbol: String.raw`a_y`, nama: "Percepatan vertikal", satuan: "m/s²" },
           { simbol: String.raw`h_0`, nama: "Ketinggian awal", satuan: "m" },
           { simbol: String.raw`v_0`, nama: "Besar kecepatan awal", satuan: "m/s" },
-          { simbol: String.raw`v_0^*`, nama: "Kecepatan awal bertanda", satuan: "m/s", deskripsi: parameter.arah === "atas" ? "+v₀ untuk gerak ke atas" : "−v₀ untuk gerak ke bawah" },
+          { simbol: String.raw`v_0^*`, nama: "Kecepatan awal bertanda", satuan: "m/s", deskripsi: parameter.arah === "atas" ? "+v₀ untuk gerak ke atas" : parameter.arah === "jatuh-bebas" ? "0 m/s untuk jatuh bebas" : "−v₀ untuk gerak ke bawah" },
           { simbol: String.raw`g`, nama: "Besar percepatan gravitasi", satuan: "m/s²" },
           { simbol: String.raw`t`, nama: "Waktu sejak benda dilepas", satuan: "s" },
           { simbol: String.raw`t_{\text{tanah}}`, nama: "Waktu hingga menyentuh tanah", satuan: "s" },
@@ -276,7 +294,7 @@ export default function GerakVertikalSimulasi() {
               ]
             : []),
         ]}
-        catatan={<>Hambatan udara diabaikan dan gravitasi dianggap konstan. Mesin simulasi menggunakan <code>v₀* = +v₀</code> untuk lemparan ke atas dan <code>v₀* = −v₀</code> untuk gerak ke bawah. Setelah benda menyentuh tanah, model menetapkan posisi, kecepatan, dan percepatan menjadi nol.</>}
+        catatan={<>Hambatan udara diabaikan dan gravitasi dianggap konstan. Mesin simulasi menggunakan <code>v₀* = 0</code> untuk jatuh bebas, <code>v₀* = +v₀</code> untuk lemparan ke atas, dan <code>v₀* = −v₀</code> untuk gerak ke bawah. Setelah benda menyentuh tanah, model menetapkan posisi, kecepatan, dan percepatan menjadi nol.</>}
       />
 
       <section className="analysis-section">

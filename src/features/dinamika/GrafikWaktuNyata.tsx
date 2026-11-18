@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useBahasa } from "../../i18n/BahasaContext";
 
 type SeriGrafik = {
   label: string;
@@ -17,6 +18,7 @@ type Props = {
 
 /** Grafik kanvas tanpa pustaka eksternal. Setiap besaran memakai panel skala vertikal sendiri. */
 export default function GrafikWaktuNyata({ judul, waktu, seri, waktuSampel, keterangan }: Props) {
+  const isId = useBahasa() === "id";
   const kanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -25,9 +27,9 @@ export default function GrafikWaktuNyata({ judul, waktu, seri, waktuSampel, kete
     if (!kanvas || !konteks) return undefined;
 
     const gambar = () => {
-      const lebar = Math.max(320, kanvas.clientWidth || 560);
+      const lebar = Math.max(1, kanvas.clientWidth || kanvas.parentElement?.clientWidth || 560);
       const tinggi = 236;
-      const rasio = Math.max(1, window.devicePixelRatio || 1);
+      const rasio = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
       kanvas.width = Math.round(lebar * rasio);
       kanvas.height = Math.round(tinggi * rasio);
       kanvas.style.height = `${tinggi}px`;
@@ -111,25 +113,31 @@ export default function GrafikWaktuNyata({ judul, waktu, seri, waktuSampel, kete
       konteks.fillText(`${waktuAkhir.toFixed(1)} s`, kanan, tinggi - 4);
       konteks.textAlign = "left";
       if (semuaNilai.length === 0) {
-        konteks.fillText("Menunggu data simulasi…", kiri + 8, tinggi / 2);
+        konteks.fillText(isId ? "Menunggu data simulasi…" : "Waiting for simulation data…", kiri + 8, tinggi / 2);
       }
     };
 
     gambar();
+    const host = kanvas.parentElement ?? kanvas;
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => gambar());
+      observer.observe(host);
+      return () => observer.disconnect();
+    }
     window.addEventListener("resize", gambar);
     return () => window.removeEventListener("resize", gambar);
-  }, [judul, seri, waktu, waktuSampel]);
+  }, [judul, seri, waktu, waktuSampel, isId]);
 
   return (
-    <section className="panel panel-grafik-dinamika" aria-label={`Grafik waktu nyata: ${judul}`}>
+    <section className="panel panel-grafik-dinamika dinamika-analysis-visual analysis-section" aria-label={`${isId ? "Grafik waktu nyata" : "Real-time graph"}: ${judul}`}>
       <div className="simulation-header">
         <div>
-          <p className="eyebrow">GRAFIK KANVAS WAKTU NYATA</p>
+          <p className="eyebrow">{isId ? "GRAFIK KANVAS WAKTU NYATA" : "REAL-TIME CANVAS GRAPH"}</p>
           <h2>{judul}</h2>
         </div>
         <span className="model-badge">t = {waktu.toFixed(2)} s</span>
       </div>
-      <canvas ref={kanvasRef} className="kanvas-grafik-dinamika" role="img" aria-label={`Grafik ${seri.map((item) => item.label).join(", ")} terhadap waktu`} />
+      <canvas ref={kanvasRef} className="kanvas-grafik-dinamika" role="img" aria-label={isId ? `Grafik ${seri.map((item) => item.label).join(", ")} terhadap waktu` : `${seri.map((item) => item.label).join(", ")} over time graph`} />
       <div className="legenda-grafik-dinamika">
         {seri.map((item) => (
           <span key={item.label}><i style={{ backgroundColor: item.warna }} />{item.label}</span>

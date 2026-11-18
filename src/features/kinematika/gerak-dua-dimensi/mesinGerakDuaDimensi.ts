@@ -1,6 +1,4 @@
-/** Model gerak dua dimensi untuk gerak jatuh bebas dan gerak parabola ideal. */
-export type ModeGerakDuaDimensi = "projectile" | "freefall";
-
+/** Mesin gerak parabola ideal dua dimensi. Gerak jatuh bebas berada di mesin gerak vertikal. */
 export type ParameterGerakDuaDimensi = {
   speed: number;
   angleDeg: number;
@@ -92,58 +90,4 @@ export function hitungMetrikParabola(parameter: ParameterGerakDuaDimensi): Metri
     finalSpeed: Math.hypot(kecepatanXAwal, kecepatanYTerakhir),
     acceleration: parameter.gravity,
   };
-}
-
-export function hitungJatuhBebas(
-  parameter: ParameterGerakDuaDimensi,
-  waktu: number,
-): KeadaanGerak {
-  validasiParameter(parameter);
-  validasiWaktu(waktu);
-
-  const durasiJatuh = Math.sqrt((2 * parameter.initialHeight) / parameter.gravity);
-  const ketinggian = Math.max(0, parameter.initialHeight - 0.5 * parameter.gravity * waktu * waktu);
-  const sudahMenyentuhTanah = parameter.initialHeight === 0 || waktu > durasiJatuh;
-
-  return {
-    t: waktu,
-    x: 0,
-    y: ketinggian,
-    vx: 0,
-    // Pada saat tepat menyentuh tanah, kecepatan masuk tetap ditampilkan.
-    vy: sudahMenyentuhTanah ? 0 : -parameter.gravity * waktu,
-    ax: 0,
-    ay: sudahMenyentuhTanah ? 0 : -parameter.gravity,
-  };
-}
-
-export function hitungMetrikJatuhBebas(parameter: ParameterGerakDuaDimensi): MetrikGerak {
-  validasiParameter(parameter);
-  const durasi = Math.sqrt((2 * parameter.initialHeight) / parameter.gravity);
-  return {
-    duration: durasi,
-    range: 0,
-    maxHeight: parameter.initialHeight,
-    finalSpeed: Math.sqrt(2 * parameter.gravity * parameter.initialHeight),
-    acceleration: parameter.gravity,
-  };
-}
-
-export function hitungKeadaanGerak(
-  mode: ModeGerakDuaDimensi,
-  parameter: ParameterGerakDuaDimensi,
-  waktu: number,
-): KeadaanGerak {
-  return mode === "freefall"
-    ? hitungJatuhBebas(parameter, waktu)
-    : hitungGerakParabola(parameter, waktu);
-}
-
-export function hitungMetrikGerak(
-  mode: ModeGerakDuaDimensi,
-  parameter: ParameterGerakDuaDimensi,
-): MetrikGerak {
-  return mode === "freefall"
-    ? hitungMetrikJatuhBebas(parameter)
-    : hitungMetrikParabola(parameter);
 }

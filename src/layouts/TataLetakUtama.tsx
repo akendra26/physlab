@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Sidebar from "../components/navigasi/Sidebar";
+import SimulationExperience from "../components/simulasi/SimulationExperience";
 import {
   DAFTAR_MODUL_DINAMIKA,
   DAFTAR_MODUL_KINEMATIKA,
@@ -62,7 +63,6 @@ export default function TataLetakUtama({
               <>
                 <span className="breadcrumb-separator">/</span>
                 <span>{namaModul}</span>
-                
               </>
             )}
           </div>
@@ -74,7 +74,13 @@ export default function TataLetakUtama({
         </header>
 
         <main className="page-content" data-active-category={kategoriAktif}>
-          <div key={kategoriAktif}>{children}</div>
+          {kategoriAktif === "kinematika" || kategoriAktif === "dinamika" ? (
+            <SimulationExperience category={kategoriAktif} moduleKey={kategoriAktif === "kinematika" ? modulAktif : modulDinamikaAktif}>
+              <div key={kategoriAktif} className="simulation-page-root">{children}</div>
+            </SimulationExperience>
+          ) : (
+            <div key={kategoriAktif}>{children}</div>
+          )}
         </main>
 
         <footer className="page-footer">

@@ -20,6 +20,21 @@ const parameterBawah: ParameterGerakVertikal = {
 };
 
 describe("model gerak vertikal", () => {
+  it("mengunci kecepatan awal pada nol untuk gerak jatuh bebas", () => {
+    const jatuhBebas: ParameterGerakVertikal = {
+      arah: "jatuh-bebas",
+      tinggiAwal: 20,
+      kecepatanAwal: 15, // Nilai ini diabaikan pada mode jatuh bebas.
+      gravitasi: 10,
+    };
+    const metrik = hitungMetrikGerakVertikal(jatuhBebas);
+    const keadaan = hitungKeadaanGerakVertikal(jatuhBebas, 1);
+    expect(metrik.kecepatanAwalBertanda).toBe(0);
+    expect(metrik.waktuTempuh).toBeCloseTo(2);
+    expect(keadaan.posisi).toBeCloseTo(15);
+    expect(keadaan.kecepatan).toBeCloseTo(-10);
+  });
+
   it("menghitung tinggi maksimum dan waktu mencapai puncak untuk lemparan ke atas", () => {
     const metrik = hitungMetrikGerakVertikal(parameterAtas);
     expect(metrik.waktuPuncak).toBeCloseTo(1.5);

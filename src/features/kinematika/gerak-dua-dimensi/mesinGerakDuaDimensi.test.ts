@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   hitungGerakParabola,
-  hitungJatuhBebas,
-  hitungMetrikJatuhBebas,
   hitungMetrikParabola,
   type ParameterGerakDuaDimensi,
 } from "./mesinGerakDuaDimensi";
@@ -64,22 +62,4 @@ describe("model gerak parabola", () => {
     expect(() => hitungGerakParabola({ ...parameterDasar, angleDeg: 361 }, 0.5)).toThrow();
   });
 
-});
-
-describe("model gerak jatuh bebas", () => {
-  it("menghitung waktu jatuh dari ketinggian", () => {
-    const parameter = { ...parameterDasar, initialHeight: 10 };
-    expect(hitungMetrikJatuhBebas(parameter).duration).toBeCloseTo(Math.sqrt(20 / 9.81), 5);
-  });
-
-  it("mempertahankan kecepatan saat tumbukan lalu berhenti sesudahnya", () => {
-    const parameter = { ...parameterDasar, initialHeight: 10 };
-    const waktuTumbukan = hitungMetrikJatuhBebas(parameter).duration;
-    const saatTumbukan = hitungJatuhBebas(parameter, waktuTumbukan);
-    const setelahTumbukan = hitungJatuhBebas(parameter, waktuTumbukan + 0.1);
-    expect(saatTumbukan.y).toBeCloseTo(0);
-    expect(saatTumbukan.vy).toBeCloseTo(-Math.sqrt(2 * 9.81 * 10), 4);
-    expect(setelahTumbukan.y).toBe(0);
-    expect(setelahTumbukan.vy).toBe(0);
-  });
 });

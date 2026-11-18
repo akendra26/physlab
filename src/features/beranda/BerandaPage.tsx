@@ -1,343 +1,161 @@
+import { useMemo } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import type { BahasaUI } from "../../components/navigasi/FloatingNavbar";
+import { KUTIPAN_ILMUWAN } from "./quotes";
 
-type BerandaPageProps = {
-  onMulaiSimulasi: () => void;
-  onEksplorasiStudiKasus: () => void;
-  onPilihTrivia: () => void;
-  onPilihProblemSet: () => void;
+type Props = {
+  bahasa: BahasaUI;
+  kunjunganBeranda: number;
+  onMulai: () => void;
+  onJelajahi: () => void;
 };
 
-function BentangLangit() {
+const LABEL = {
+  id: {
+    eyebrow: "RUANG EKSPLORASI FISIKA",
+    headline: "Fisika, tanpa batas.",
+    description: "Jelajahi hukum gerak, gaya, dan keseimbangan melalui eksperimen virtual yang bisa kamu kendalikan sendiri.",
+    start: "Mulai",
+    explore: "Jelajahi",
+    scroll: "GULIR UNTUK MENJELAJAH",
+    footnote: "EKSPERIMEN INTERAKTIF · MODEL FISIKA · RASA INGIN TAHU",
+  },
+  en: {
+    eyebrow: "A REALM OF PHYSICS EXPLORATION",
+    headline: "Physics, without limits.",
+    description: "Explore motion, forces, and equilibrium through virtual experiments you can control yourself.",
+    start: "Start",
+    explore: "Explore",
+    scroll: "SCROLL TO EXPLORE",
+    footnote: "INTERACTIVE EXPERIMENTS · PHYSICS MODELS · CURIOSITY",
+  },
+} as const;
+
+function ArrowUpRight() {
   return (
-    <div className="hero-landscape" aria-hidden="true">
-      <div className="hero-horizon-glow" />
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 15 15 5M6 5h9v9" /></svg>
+  );
+}
 
-      <svg
-        className="hero-mountains hero-mountains-back"
-        viewBox="0 0 1600 430"
-        preserveAspectRatio="none"
-      >
-        <path d="
-          M0 255 95 221 180 243 282 172
-          365 214 466 147 556 224 645 184
-          752 244 856 156 958 219 1058 145
-          1168 233 1273 177 1378 222
-          1484 156 1600 222V430H0Z
-        " />
-      </svg>
-
-      <svg
-        className="hero-mountains hero-mountains-front"
-        viewBox="0 0 1600 430"
-        preserveAspectRatio="none"
-      >
-        <path d="
-          M0 278 120 248 218 286 337 225
-          451 276 565 245 682 303 811 246
-          925 293 1042 237 1160 279
-          1282 229 1397 268 1504 221
-          1600 251V430H0Z
-        " />
-      </svg>
-
-      <div className="hero-observer">
-        <span className="observer-head" />
-        <span className="observer-body" />
-        <span className="observer-leg observer-leg-left" />
-        <span className="observer-leg observer-leg-right" />
-      </div>
-
-      <div className="hero-observer-rock" />
-      <div className="hero-ground" />
+function HeroBackdrop() {
+  return (
+    <div className="hero-backdrop" aria-hidden="true">
+      <div className="hero-glow hero-glow-one" />
+      <div className="hero-glow hero-glow-two" />
+      <div className="hero-grid-lines" />
+      <div className="hero-orbit hero-orbit-one" />
+      <div className="hero-orbit hero-orbit-two" />
+      <div className="hero-cross hero-cross-one">+</div>
+      <div className="hero-cross hero-cross-two">+</div>
+      <div className="hero-cross hero-cross-three">+</div>
+      <div className="hero-coordinate hero-coordinate-one">x(t) = x₀ + vt</div>
+      <div className="hero-coordinate hero-coordinate-two">ΣF = ma</div>
+      <div className="hero-spark hero-spark-one" />
+      <div className="hero-spark hero-spark-two" />
+      <div className="hero-spark hero-spark-three" />
     </div>
   );
 }
 
-export default function BerandaPage({
-  onMulaiSimulasi,
-  onEksplorasiStudiKasus,
-  onPilihTrivia,
-  onPilihProblemSet,
-}: BerandaPageProps) {
+export default function BerandaPage({ bahasa, kunjunganBeranda, onMulai, onJelajahi }: Props) {
+  const text = LABEL[bahasa];
+  const reduceMotion = useReducedMotion();
+  const kutipan = useMemo(
+    () => KUTIPAN_ILMUWAN[kunjunganBeranda % KUTIPAN_ILMUWAN.length],
+    [kunjunganBeranda],
+  );
+
+  const masuk = reduceMotion
+    ? { initial: false as const, animate: { opacity: 1, y: 0 } }
+    : { initial: { opacity: 0, y: 22 }, animate: { opacity: 1, y: 0 } };
+
   return (
-    <div className="home-page">
+    <div className="home-page home-page-minimal">
+      <section className="home-hero home-hero-minimal" aria-labelledby="home-title">
+        <HeroBackdrop />
+        <div className="hero-content-minimal">
+          <motion.div
+            className="hero-eyebrow-minimal"
+            {...masuk}
+            transition={{ duration: reduceMotion ? 0 : 0.65, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span className="eyebrow-line" />
+            <span>{text.eyebrow}</span>
+            <span className="eyebrow-line" />
+          </motion.div>
 
-      {/* HERO SECTION */}
+          <motion.h1
+            id="home-title"
+            className="hero-wordmark"
+            initial={reduceMotion ? false : { opacity: 0, y: 18, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: reduceMotion ? 0 : 0.78, delay: reduceMotion ? 0 : 0.08, ease: [0.22, 1, 0.36, 1] }}
+          >
+            Phys<span>LAB</span><i className="hero-wordmark-dot" />
+          </motion.h1>
 
-      <section
-        className="home-hero"
-        aria-labelledby="home-title"
-      >
-        <div className="hero-sky-layer" aria-hidden="true">
-          <div className="hero-nebula" />
+          <motion.h2
+            className="hero-tagline"
+            {...masuk}
+            transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : 0.16, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {text.headline}
+          </motion.h2>
 
-          <div className="hero-stars hero-stars-one" />
-          <div className="hero-stars hero-stars-two" />
-          <div className="hero-stars hero-stars-three" />
+          <motion.p
+            className="hero-description-minimal"
+            {...masuk}
+            transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : 0.23, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {text.description}
+          </motion.p>
 
-          <div className="hero-galaxy-band" />
-          <div className="hero-moon-glow" />
-        </div>
+          <motion.div
+            className="hero-quote-card"
+            key={kutipan.id}
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : 0.28 }}
+          >
+            <blockquote>
+              “{kutipan.quote}” <cite>— {kutipan.author}</cite>
+            </blockquote>
+          </motion.div>
 
-        <div className="hero-content">
-
-          <div className="hero-overline">
-            <span className="hero-overline-line" />
-
-            <span>
-              LABORATORIUM FISIKA INTERAKTIF
-            </span>
-
-            <span className="hero-overline-line" />
-          </div>
-
-          <p className="hero-pretitle">
-            BELAJAR · MENJELAJAH · MENEMUKAN
-          </p>
-
-          <h1 id="home-title">
-            Semesta punya <em>hukum.</em>
-            <br />
-            Mari kita <span>jelajahi.</span>
-          </h1>
-
-          <p className="hero-description">
-            Dari lintasan sebuah benda hingga rahasia
-            gaya yang menggerakkannya. Temukan fisika
-            melalui simulasi, eksperimen, dan tantangan
-            interaktif.
-          </p>
-
-          <div className="hero-actions">
-
-            <button
-              className="hero-button hero-button-primary"
-              type="button"
-              onClick={onMulaiSimulasi}
-            >
-              Mulai Simulasi
-              <span aria-hidden="true">↗</span>
+          <motion.div
+            className="hero-actions-minimal"
+            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.62, delay: reduceMotion ? 0 : 0.37, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <button className="hero-cta hero-cta-primary" type="button" onClick={onMulai}>
+              <span>{text.start}</span><ArrowUpRight />
             </button>
-
-            <button
-              className="hero-button hero-button-secondary"
-              type="button"
-              onClick={onEksplorasiStudiKasus}
-            >
-              Eksplorasi Studi Kasus
-              <span aria-hidden="true">→</span>
+            <button className="hero-cta hero-cta-secondary" type="button" onClick={onJelajahi}>
+              <span>{text.explore}</span><span className="hero-cta-arrow">→</span>
             </button>
+          </motion.div>
 
-          </div>
-
-          <div className="hero-bottom-meta">
-            <span>
-              <i className="meta-dot meta-dot-mint" />
-              KINEMATIKA &amp; DINAMIKA
-            </span>
-
-            <span>
-              <i className="meta-dot meta-dot-blue" />
-              LABORATORIUM VIRTUAL
-            </span>
-
-            <span>
-              <i className="meta-dot meta-dot-orange" />
-              KELAS XI SMA
-            </span>
-          </div>
-
+          <motion.div
+            className="hero-bottomline"
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: reduceMotion ? 0 : 0.6 }}
+          >
+            <span><i />{text.footnote}</span>
+            <span className="hero-index">01 <b>/</b> 04</span>
+          </motion.div>
         </div>
 
-        {/* DEKORASI PERSAMAAN */}
-
-        <div
-          className="hero-formula hero-formula-left"
-          aria-hidden="true"
-        >
-          <span>Δx</span>
-          <small>────</small>
-          <span>Δt</span>
-          <i>v =</i>
-        </div>
-
-        <div
-          className="hero-formula hero-formula-right"
-          aria-hidden="true"
-        >
-          <span>ΣF = ma</span>
-          <small>NEWTON · 1687</small>
-        </div>
-
-        <BentangLangit />
-
-        <button
-          className="hero-scroll-cue"
-          type="button"
-          onClick={() =>
-            document
-              .getElementById("ruang-belajar")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
-        >
-          <span className="scroll-cue-wheel" />
-          <span>JELAJAHI PHYSLAB</span>
-          <span className="scroll-cue-arrow">↓</span>
-        </button>
-
-      </section>
-
-      {/* PILIH RUANG BELAJAR */}
-
-      <section
-        className="home-learning"
-        id="ruang-belajar"
-        aria-labelledby="learning-title"
-      >
-        <div className="learning-section-heading">
-
-          <div>
-            <p className="home-section-eyebrow">
-              PETA EKSPEDISI
-            </p>
-
-            <h2 id="learning-title">
-              Pilih cara belajarmu.
-            </h2>
-          </div>
-
-          <p>
-            Empat ruang untuk memahami alam
-            melalui cara yang berbeda.
-          </p>
-
-        </div>
-
-        <div className="learning-cards">
-
-          <button
-            className="learning-card learning-card-trivia"
-            type="button"
-            onClick={onPilihTrivia}
-          >
-            <span className="learning-card-index">
-              01 / WAWASAN
-            </span>
-
-            <span className="learning-card-icon">✧</span>
-
-            <strong>Trivia &amp; Kuis</strong>
-
-            <span className="learning-card-copy">
-              Kenali tokoh, sejarah, dan uji
-              pemahaman konsep fisika.
-            </span>
-
-            <span className="learning-card-link">
-              Jelajahi <b>↗</b>
-            </span>
-          </button>
-
-          <button
-            className="learning-card learning-card-simulation"
-            type="button"
-            onClick={onMulaiSimulasi}
-          >
-            <span className="learning-card-index">
-              02 / EKSPERIMEN
-            </span>
-
-            <span className="learning-card-icon">⌁</span>
-
-            <strong>Simulasi</strong>
-
-            <span className="learning-card-copy">
-              Ubah parameter dan amati hukum
-              fisika bekerja.
-            </span>
-
-            <span className="learning-card-link">
-              Mulai simulasi <b>↗</b>
-            </span>
-          </button>
-
-          <button
-            className="learning-card learning-card-case"
-            type="button"
-            onClick={onEksplorasiStudiKasus}
-          >
-            <span className="learning-card-index">
-              03 / PENYELIDIKAN
-            </span>
-
-            <span className="learning-card-icon">⌘</span>
-
-            <strong>Studi Kasus</strong>
-
-            <span className="learning-card-copy">
-              Selesaikan proyek dan lakukan riset
-              di laboratorium virtual.
-            </span>
-
-            <span className="learning-card-link">
-              Masuk laboratorium <b>↗</b>
-            </span>
-          </button>
-
-          <button
-            className="learning-card learning-card-problem"
-            type="button"
-            onClick={onPilihProblemSet}
-          >
-            <span className="learning-card-index">
-              04 / LATIHAN
-            </span>
-
-            <span className="learning-card-icon">∑</span>
-
-            <strong>Problem Set</strong>
-
-            <span className="learning-card-copy">
-              Asah kemampuan hitung dengan
-              soal dan pembahasan.
-            </span>
-
-            <span className="learning-card-link">
-              Kerjakan soal <b>↗</b>
-            </span>
-          </button>
-
+        <div className="hero-scroll-cue-minimal" aria-hidden="true">
+          <span />{text.scroll}<span className="scroll-line" />
         </div>
       </section>
 
-      {/* FOOTER */}
-
-      <footer className="home-footer">
-
-        <a
-          className="home-footer-brand"
-          href="#beranda"
-          onClick={(event) => {
-            event.preventDefault();
-
-            window.scrollTo({
-              top: 0,
-              behavior: "smooth",
-            });
-          }}
-        >
-          Phys<span>LAB</span>
-        </a>
-
-        <span>
-          Belajar fisika dengan rasa ingin tahu.
-        </span>
-
-        <span>
-          LABORATORIUM FISIKA INTERAKTIF · BETA
-        </span>
-
+      <footer className="home-footer-minimal">
+        <span>PHYSLAB <i /> {bahasa === "id" ? "LABORATORIUM FISIKA INTERAKTIF" : "INTERACTIVE PHYSICS LABORATORY"}</span>
+        <span>© {new Date().getFullYear()} PHYSLAB · EXPLORE THE LAWS OF MOTION</span>
       </footer>
-
     </div>
   );
 }

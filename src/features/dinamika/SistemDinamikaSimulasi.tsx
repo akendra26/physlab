@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { DockableControlPanel, useKinematicsScaleMode } from "../../components/simulasi/SimulationExperience";
 
 import KartuBesaran from "../../components/simulasi/KartuBesaran";
 import ModelMatematika from "../../components/simulasi/ModelMatematika";
@@ -7,11 +8,11 @@ import GrafikWaktuNyata from "./GrafikWaktuNyata";
 import KontrolSimulasiDinamika from "./KontrolSimulasiDinamika";
 import { batasi, dapatkanTitikSvg } from "./InteraksiSvg";
 import { hitungAtwood, hitungLift } from "./mesinDinamika";
+import { useBahasa } from "../../i18n/BahasaContext";
 
 type ModeSistem = "katrol" | "lift";
 type JenisTarikan = "tegangan" | "normal" | "berat" | "massa-satu";
 type TarikanAktif = { jenis: JenisTarikan; asalX: number; asalY: number; skala: number; offsetY?: number };
-const DURASI = 12;
 type RiwayatGerak = { waktu: number; posisi: number; kecepatan: number; percepatan: number };
 
 function useJamSimulasi(durasi: number) {
@@ -47,6 +48,14 @@ function useJamSimulasi(durasi: number) {
     bingkai = requestAnimationFrame(perbarui);
     return () => cancelAnimationFrame(bingkai);
   }, [berjalan, durasi, pengaliKecepatan, tanpaBatas]);
+
+  useEffect(() => {
+    if (!tanpaBatas && waktuRef.current > durasi) {
+      waktuRef.current = durasi;
+      setWaktu(durasi);
+      setBerjalan(false);
+    }
+  }, [durasi, tanpaBatas]);
 
   const aturWaktu = (nilai: number) => {
     const berikutnya = batasi(nilai, 0, durasi);
@@ -85,32 +94,37 @@ function PanahTarik({
   label: string;
   onMulai: (event: ReactPointerEvent<SVGCircleElement>) => void;
 }) {
+  const isId = useBahasa() === "id";
   return (
     <g className="vektor-dapat-ditarik">
-      <line x1={asalX} y1={asalY} x2={ujungX} y2={ujungY} stroke={warna} strokeWidth="2.5" strokeLinecap="round" markerEnd={`url(#${marker})`} />
-      <circle cx={ujungX} cy={ujungY} r="9" fill={warna} fillOpacity=".14" stroke={warna} strokeOpacity=".85" className="pegangan-vektor" onPointerDown={onMulai} aria-label={`Tarik panah ${label}`} />
-      <text x={ujungX + 10} y={ujungY - 5} fill={warna} fontSize="12" fontWeight="700">{label}</text>
+      <line x1={asalX} y1={asalY} x2={ujungX} y2={ujungY} stroke="#050b16" strokeWidth="7.5" strokeLinecap="round" />
+      <line x1={asalX} y1={asalY} x2={ujungX} y2={ujungY} stroke={warna} strokeWidth="4.4" strokeLinecap="round" markerEnd={`url(#${marker})`} />
+      <circle cx={ujungX} cy={ujungY} r="9" fill={warna} fillOpacity=".14" stroke={warna} strokeOpacity=".85" className="pegangan-vektor" onPointerDown={onMulai} aria-label={isId ? `Tarik panah ${label}` : `Drag ${label} vector` } />
+      <text x={ujungX + 10} y={ujungY - 5} fill={warna} stroke="#050b16" strokeWidth="3" paintOrder="stroke" fontSize="12" fontWeight="800">{label}</text>
     </g>
   );
 }
 
-export default function SistemDinamikaSimulasi() {
-  const [mode, setMode] = useState<ModeSistem>("katrol");
+export default function SistemDinamikaSimulasi({ initialMode }: { initialMode: ModeSistem }) {
+  const isId = useBahasa() === "id";
+  const scaleMode = useKinematicsScaleMode();
+  const [durasi, setDurasi] = useState(12);
+  const mode = initialMode;
   const [massaSatu, setMassaSatu] = useState(4);
   const [massaDua, setMassaDua] = useState(6);
   const [massaLift, setMassaLift] = useState(60);
   const [gravitasi, setGravitasi] = useState(9.81);
   const [percepatanLift, setPercepatanLift] = useState(0.8);
   const tarikanAktif = useRef<TarikanAktif | null>(null);
-  const playback = useJamSimulasi(DURASI);
+  const playback = useJamSimulasi(durasi);
   const gerakKatrolRef = useRef<RiwayatGerak>({ waktu: 0, posisi: 0, kecepatan: 0, percepatan: 0 });
   const gerakLiftRef = useRef<RiwayatGerak>({ waktu: 0, posisi: 0, kecepatan: 0, percepatan: 0 });
   const waktuIntegrasiRef = useRef(0);
   const akumulatorGrafikRef = useRef(0);
-  const [gerakKatrol, setGerakKatrol] = useState(gerakKatrolRef.current);
-  const [gerakLift, setGerakLift] = useState(gerakLiftRef.current);
-  const [riwayatKatrol, setRiwayatKatrol] = useState<RiwayatGerak[]>([gerakKatrolRef.current]);
-  const [riwayatLift, setRiwayatLift] = useState<RiwayatGerak[]>([gerakLiftRef.current]);
+  const [gerakKatrol, setGerakKatrol] = useState<RiwayatGerak>({ waktu: 0, posisi: 0, kecepatan: 0, percepatan: 0 });
+  const [gerakLift, setGerakLift] = useState<RiwayatGerak>({ waktu: 0, posisi: 0, kecepatan: 0, percepatan: 0 });
+  const [riwayatKatrol, setRiwayatKatrol] = useState<RiwayatGerak[]>([{ waktu: 0, posisi: 0, kecepatan: 0, percepatan: 0 }]);
+  const [riwayatLift, setRiwayatLift] = useState<RiwayatGerak[]>([{ waktu: 0, posisi: 0, kecepatan: 0, percepatan: 0 }]);
 
   const hasilKatrol = useMemo(() => hitungAtwood(massaSatu, massaDua, gravitasi), [gravitasi, massaDua, massaSatu]);
   const hasilLift = hitungLift(massaLift, gravitasi, gerakLift.percepatan);
@@ -168,7 +182,7 @@ export default function SistemDinamikaSimulasi() {
       lift = { waktu: playback.waktu - deltaTotal + (indeks + 1) * dt, posisi: sLift, kecepatan: vLift, percepatan: aLift };
 
       akumulator += dt;
-      if (akumulator >= 0.08) {
+        if (akumulator >= 0.08 || playback.waktu + 1e-6 >= durasi) {
         sampelKatrol.push({ ...katrol });
         sampelLift.push({ ...lift });
         akumulator = 0;
@@ -182,15 +196,15 @@ export default function SistemDinamikaSimulasi() {
     setGerakLift(lift);
     if (sampelKatrol.length) setRiwayatKatrol((lama) => [...lama, ...sampelKatrol].slice(-90));
     if (sampelLift.length) setRiwayatLift((lama) => [...lama, ...sampelLift].slice(-90));
-  }, [hasilKatrol.percepatan, massaLift, percepatanLift, playback.waktu]);
+  }, [durasi, hasilKatrol.percepatan, massaLift, percepatanLift, playback.waktu]);
 
   const arahKatrol = Math.abs(hasilKatrol.percepatan) < 1e-8
-    ? "Sistem seimbang: percepatan kedua massa nol."
+    ? (isId ? "Sistem seimbang: percepatan kedua massa nol." : "Balanced system: both masses have zero acceleration.")
     : gerakKatrol.kecepatan === 0 && playback.waktu > 0
-      ? "Massa mencapai batas lintasan dan berhenti setelah kontak mekanis."
+      ? (isId ? "Massa mencapai batas lintasan dan berhenti setelah kontak mekanis." : "The mass reaches the track limit and stops after mechanical contact.")
       : hasilKatrol.percepatan > 0
-        ? "Massa m₂ bergerak turun dan massa m₁ bergerak naik."
-        : "Massa m₁ bergerak turun dan massa m₂ bergerak naik.";
+        ? (isId ? "Massa m₂ bergerak turun dan massa m₁ bergerak naik." : "Mass m₂ moves down while mass m₁ moves up.")
+        : (isId ? "Massa m₁ bergerak turun dan massa m₂ bergerak naik." : "Mass m₁ moves down while mass m₂ moves up.");
 
   const resetGerak = () => {
     const awal: RiwayatGerak = { waktu: 0, posisi: 0, kecepatan: 0, percepatan: 0 };
@@ -204,24 +218,10 @@ export default function SistemDinamikaSimulasi() {
     setRiwayatLift([awal]);
   };
 
-  // Reset tombol playback juga harus mengosongkan state posisi/kecepatan
-  // yang diintegrasikan terpisah dari jam simulasi.
-  const resetPlayback = () => {
-    playback.aturUlang();
-    resetGerak();
-    tarikanAktif.current = null;
-  };
-
-  const ubahMode = (berikutnya: ModeSistem) => {
-    setMode(berikutnya);
-    playback.aturUlang();
-    resetGerak();
-    tarikanAktif.current = null;
-  };
-
   const reset = () => {
-    resetPlayback();
-    setMode("katrol");
+    playback.aturUlang();
+    resetGerak();
+    setDurasi(12);
     setMassaSatu(4);
     setMassaDua(6);
     setMassaLift(60);
@@ -297,75 +297,80 @@ export default function SistemDinamikaSimulasi() {
 
   const seriGrafik = mode === "katrol"
     ? [
-      { label: "Perpindahan m₂", satuan: "m", warna: "#55e0c1", nilai: riwayatKatrol.map((item) => item.posisi) },
-      { label: "Kecepatan m₂", satuan: "m/s", warna: "#8ea7ff", nilai: riwayatKatrol.map((item) => item.kecepatan) },
-      { label: "Percepatan m₂", satuan: "m/s²", warna: "#f6bd60", nilai: riwayatKatrol.map((item) => item.percepatan) },
+      { label: isId ? "Perpindahan m₂" : "m₂ displacement", satuan: "m", warna: "#55e0c1", nilai: riwayatKatrol.map((item) => item.posisi) },
+      { label: isId ? "Kecepatan m₂" : "m₂ velocity", satuan: "m/s", warna: "#8ea7ff", nilai: riwayatKatrol.map((item) => item.kecepatan) },
+      { label: isId ? "Percepatan m₂" : "m₂ acceleration", satuan: "m/s²", warna: "#f6bd60", nilai: riwayatKatrol.map((item) => item.percepatan) },
     ]
     : [
-      { label: "Posisi lift", satuan: "m", warna: "#55e0c1", nilai: riwayatLift.map((item) => item.posisi) },
-      { label: "Kecepatan lift", satuan: "m/s", warna: "#8ea7ff", nilai: riwayatLift.map((item) => item.kecepatan) },
-      { label: "Percepatan aktual", satuan: "m/s²", warna: "#f6bd60", nilai: riwayatLift.map((item) => item.percepatan) },
+      { label: isId ? "Posisi lift" : "Elevator position", satuan: "m", warna: "#55e0c1", nilai: riwayatLift.map((item) => item.posisi) },
+      { label: isId ? "Kecepatan lift" : "Elevator velocity", satuan: "m/s", warna: "#8ea7ff", nilai: riwayatLift.map((item) => item.kecepatan) },
+      { label: isId ? "Percepatan aktual" : "Actual acceleration", satuan: "m/s²", warna: "#f6bd60", nilai: riwayatLift.map((item) => item.percepatan) },
     ];
 
   const persamaanKatrol = [
-    { judul: "Percepatan sistem Atwood", latex: String.raw`a=\frac{(m_2-m_1)g}{m_1+m_2}` },
-    { judul: "Tegangan tali", latex: String.raw`T=\frac{2m_1m_2}{m_1+m_2}\,g` },
-    { judul: "Hukum II Newton pada masing-masing massa", latex: String.raw`T-m_1g=m_1a,\qquad m_2g-T=m_2a` },
+    { judul: (isId ? "Percepatan sistem Atwood" : "Atwood system acceleration"), latex: String.raw`a=\frac{(m_2-m_1)g}{m_1+m_2}` },
+    { judul: (isId ? "Tegangan tali" : "Rope tension"), latex: String.raw`T=\frac{2m_1m_2}{m_1+m_2}\,g` },
+    { judul: (isId ? "Hukum II Newton pada masing-masing massa" : "Newton’s second law for each mass"), latex: String.raw`T-m_1g=m_1a,\qquad m_2g-T=m_2a` },
   ];
   const persamaanLift = [
-    { judul: "Hukum II Newton pada arah vertikal", latex: String.raw`N-mg=ma_{\text{aktual}}` },
-    { judul: "Berat semu / pembacaan timbangan", latex: String.raw`W_{\text{semu}}=N=m(g+a_{\text{aktual}})` },
-    { judul: "Berat gravitasi", latex: String.raw`W=mg` },
+    { judul: (isId ? "Hukum II Newton pada arah vertikal" : "Newton’s second law in the vertical direction"), latex: String.raw`N-mg=ma_{\text{aktual}}` },
+    { judul: (isId ? "Berat semu / pembacaan timbangan" : "Apparent weight / scale reading"), latex: String.raw`W_{\text{semu}}=N=m(g+a_{\text{aktual}})` },
+    { judul: (isId ? "Berat gravitasi" : "Gravitational weight"), latex: String.raw`W=mg` },
   ];
   const variabelKatrol = [
-    { simbol: String.raw`m_1`, nama: "Massa pertama", satuan: "kg" },
-    { simbol: String.raw`m_2`, nama: "Massa kedua", satuan: "kg" },
-    { simbol: String.raw`a`, nama: "Percepatan; positif saat m₂ turun", satuan: "m/s²" },
-    { simbol: String.raw`T`, nama: "Tegangan tali", satuan: "N" },
-    { simbol: String.raw`g`, nama: "Percepatan gravitasi", satuan: "m/s²" },
+    { simbol: String.raw`m_1`, nama: (isId ? "Massa pertama" : "First mass"), satuan: "kg" },
+    { simbol: String.raw`m_2`, nama: (isId ? "Massa kedua" : "Second mass"), satuan: "kg" },
+    { simbol: String.raw`a`, nama: (isId ? "Percepatan; positif saat m₂ turun" : "Acceleration; positive when m₂ moves down"), satuan: "m/s²" },
+    { simbol: String.raw`T`, nama: (isId ? "Tegangan tali" : "Rope tension"), satuan: "N" },
+    { simbol: String.raw`g`, nama: (isId ? "Percepatan gravitasi" : "Gravitational acceleration"), satuan: "m/s²" },
   ];
   const variabelLift = [
-    { simbol: String.raw`m`, nama: "Massa penumpang atau benda", satuan: "kg" },
-    { simbol: String.raw`a`, nama: "Percepatan aktual kabin", satuan: "m/s²" },
-    { simbol: String.raw`N`, nama: "Gaya normal lantai lift pada orang", satuan: "N" },
-    { simbol: String.raw`W`, nama: "Berat gravitasi", satuan: "N" },
-    { simbol: String.raw`g`, nama: "Percepatan gravitasi", satuan: "m/s²" },
+    { simbol: String.raw`m`, nama: (isId ? "Massa penumpang atau benda" : "Passenger or object mass"), satuan: "kg" },
+    { simbol: String.raw`a`, nama: (isId ? "Percepatan aktual kabin" : "Actual cabin acceleration"), satuan: "m/s²" },
+    { simbol: String.raw`N`, nama: (isId ? "Gaya normal lantai lift pada orang" : "Normal force from the elevator floor on the passenger"), satuan: "N" },
+    { simbol: String.raw`W`, nama: (isId ? "Berat gravitasi" : "Gravitational weight"), satuan: "N" },
+    { simbol: String.raw`g`, nama: (isId ? "Percepatan gravitasi" : "Gravitational acceleration"), satuan: "m/s²" },
   ];
 
   return (
     <section className="dinamika-simulasi">
       <div className="dinamika-section-heading">
         <div>
-          <p className="eyebrow">KATROL &amp; LIFT</p>
-          <h2>Sistem Dinamika &amp; Penerapan</h2>
-          <p>Gerak dihitung dari persamaan kinematika bertahap. Grafik posisi, kecepatan, dan percepatan mengikuti waktu simulasi.</p>
+          <p className="eyebrow">{mode === "katrol" ? (isId ? "KATROL ATWOOD" : "ATWOOD MACHINE") : (isId ? "DINAMIKA LIFT" : "ELEVATOR DYNAMICS")}</p>
+          <h2>{mode === "katrol" ? (isId ? "Sistem Katrol Atwood" : "Atwood Pulley System") : (isId ? "Benda di Dalam Lift" : "Object Inside an Elevator")}</h2>
+          <p>{isId ? "Gerak dihitung dari persamaan dinamika bertahap. Grafik posisi, kecepatan, dan percepatan mengikuti waktu simulasi." : "Motion is calculated using stepwise dynamics equations. Position, velocity, and acceleration graphs follow the simulation clock."}</p>
         </div>
-        <button type="button" className="dinamika-reset" onClick={reset}>Atur ulang</button>
-      </div>
-
-      <div className="dinamika-mode-switch" role="tablist" aria-label="Pilih sistem dinamika">
-        <button type="button" role="tab" aria-selected={mode === "katrol"} className={mode === "katrol" ? "is-active" : ""} onClick={() => ubahMode("katrol")}>
-          <span>01</span><strong>Sistem katrol Atwood</strong><small>Tegangan tali dan percepatan</small>
-        </button>
-        <button type="button" role="tab" aria-selected={mode === "lift"} className={mode === "lift" ? "is-active" : ""} onClick={() => ubahMode("lift")}>
-          <span>02</span><strong>Benda di dalam lift</strong><small>Berat semu dan gaya normal</small>
-        </button>
+        <button type="button" className="dinamika-reset" onClick={reset}>{isId ? "Atur ulang" : "Reset"}</button>
       </div>
 
       {mode === "katrol" ? (
         <div className="dinamika-workspace">
-          <aside className="panel control-panel">
-            <div className="panel-heading"><div><p className="eyebrow">PENGATURAN</p><h2>Parameter katrol</h2></div></div>
-            <ParameterSlider label="Massa pertama (m₁)" value={massaSatu} min={1} max={20} step={0.5} unit="kg" onChange={setMassaSatu} />
-            <ParameterSlider label="Massa kedua (m₂)" value={massaDua} min={1} max={20} step={0.5} unit="kg" onChange={setMassaDua} />
-            <ParameterSlider label="Percepatan gravitasi" value={gravitasi} min={1} max={20} step={0.01} unit="m/s²" onChange={setGravitasi} />
-            <p className="dinamika-control-note">Tarik ujung panah T untuk mengubah tegangan; massa m₂ diselesaikan dari persamaan Atwood. Tali dianggap ringan, tidak mulur, dan tanpa slip.</p>
-          </aside>
+          <DockableControlPanel><aside className="panel control-panel">
+            <div className="panel-heading"><div><p className="eyebrow">{isId ? "PENGATURAN" : "SETTINGS"}</p><h2>{isId ? "Parameter katrol" : "Pulley parameters"}</h2></div></div>
+            <div className="atwood-mass-control">
+              <ParameterSlider label={isId ? "Massa pertama (m₁)" : "First mass (m₁)"} value={massaSatu} min={1} max={20} step={0.5} unit="kg" onChange={setMassaSatu} />
+              <div className="atwood-stepper" aria-label={isId ? "Ubah massa pertama" : "Adjust first mass"}>
+                <button type="button" onClick={() => setMassaSatu((v) => Math.max(1, Math.round((v - 0.5) * 10) / 10))} aria-label="Kurangi massa pertama">−</button>
+                <output>{massaSatu.toFixed(1)} kg</output>
+                <button type="button" onClick={() => setMassaSatu((v) => Math.min(20, Math.round((v + 0.5) * 10) / 10))} aria-label="Tambah massa pertama">+</button>
+              </div>
+            </div>
+            <div className="atwood-mass-control">
+              <ParameterSlider label={isId ? "Massa kedua (m₂)" : "Second mass (m₂)"} value={massaDua} min={1} max={20} step={0.5} unit="kg" onChange={setMassaDua} />
+              <div className="atwood-stepper" aria-label={isId ? "Ubah massa kedua" : "Adjust second mass"}>
+                <button type="button" onClick={() => setMassaDua((v) => Math.max(1, Math.round((v - 0.5) * 10) / 10))} aria-label="Kurangi massa kedua">−</button>
+                <output>{massaDua.toFixed(1)} kg</output>
+                <button type="button" onClick={() => setMassaDua((v) => Math.min(20, Math.round((v + 0.5) * 10) / 10))} aria-label="Tambah massa kedua">+</button>
+              </div>
+            </div>
+            <ParameterSlider label={isId ? (isId ? "Percepatan gravitasi" : "Gravitational acceleration") : "Gravitational acceleration"} value={gravitasi} min={1} max={20} step={0.01} unit="m/s²" onChange={setGravitasi} />
+            <p className="dinamika-control-note">{isId ? "Tarik ujung panah T untuk mengubah tegangan; massa m₂ dihitung dari persamaan Atwood. Tali dianggap ringan, tidak mulur, dan tanpa slip." : "Drag the tip of vector T to change tension; mass m₂ is solved from the Atwood equation. The string is assumed massless, inextensible, and slip-free."}</p>
+          </aside></DockableControlPanel>
 
           <div className="dinamika-main-column">
             <section className="panel dinamika-visual-panel">
-              <div className="simulation-header"><div><p className="eyebrow">DIAGRAM SISTEM</p><h2>Mesin Atwood dan lantai dasar</h2></div><span className="model-badge">KATROL IDEAL</span></div>
-              <svg viewBox="0 0 540 390" role="img" aria-label="Mesin Atwood dengan tali tipis, rentangan panjang, lantai dasar, dan panah tegangan yang dapat ditarik" onPointerMove={gerakTarik} onPointerUp={akhiriTarik} onPointerCancel={akhiriTarik}>
+              <div className="simulation-header"><div><p className="eyebrow">{isId ? "DIAGRAM SISTEM" : "SYSTEM DIAGRAM"}</p><h2>{isId ? "Mesin Atwood dan lantai dasar" : "Atwood machine and base floor"}</h2></div><span className="model-badge">{isId ? "KATROL IDEAL" : "IDEAL PULLEY"} · {scaleMode === "actual-scale" ? (isId ? "SKALA NYATA" : "ACTUAL SCALE") : (isId ? "KOTAK BATAS" : "BOUNDARY BOX")}</span></div>
+              <svg viewBox="0 0 540 390" role="img" aria-label={isId ? "Mesin Atwood dengan tali tipis, rentangan panjang, lantai dasar, dan panah tegangan yang dapat ditarik" : "Atwood machine with a thin string, long span, base floor, and draggable tension vector"} onPointerMove={gerakTarik} onPointerUp={akhiriTarik} onPointerCancel={akhiriTarik}>
                 <defs>
                   <marker id="panah-katrol-tegangan-rev" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8ea7ff" /></marker>
                   <marker id="panah-katrol-berat-rev" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f6bd60" /></marker>
@@ -380,7 +385,7 @@ export default function SistemDinamikaSimulasi() {
                 </g>
                 <circle cx="270" cy="80" r="5" fill="#8ea7ff" />
                 {(() => {
-                  const perpindahan = gerakKatrol.posisi * 60;
+                  const perpindahan = gerakKatrol.posisi * (scaleMode === "actual-scale" ? 60 : 48);
                   const topSatu = 200 - perpindahan;
                   const topDua = 200 + perpindahan;
                   const skala = 40 / Math.max(massaDua * gravitasi, hasilKatrol.tegangan, 1);
@@ -396,46 +401,47 @@ export default function SistemDinamikaSimulasi() {
                       <text x="165" y={topSatu + 33} textAnchor="middle" fill="#e9eef8" fontSize="16" fontWeight="700">m₁</text>
                       <text x="375" y={topDua + 33} textAnchor="middle" fill="#e9eef8" fontSize="16" fontWeight="700">m₂</text>
                       <line x1="165" y1={topSatu + 55} x2="165" y2={topSatu + 72} stroke="#8ea7ff" strokeWidth="1.4" opacity=".6" />
-                      <line x1="375" y1={asalYBerat} x2="375" y2={ujungYBerat} stroke="#f6bd60" strokeWidth="2.2" markerEnd="url(#panah-katrol-berat-rev)" />
-                      <text x="388" y={ujungYBerat + 11} fill="#f6bd60" fontSize="11">m₂g</text>
+                      <line x1="375" y1={asalYBerat} x2="375" y2={ujungYBerat} stroke="#050b16" strokeWidth="7.5" strokeLinecap="round" />
+                      <line x1="375" y1={asalYBerat} x2="375" y2={ujungYBerat} stroke="#f6bd60" strokeWidth="4.3" strokeLinecap="round" markerEnd="url(#panah-katrol-berat-rev)" />
+                      <text x="388" y={ujungYBerat + 11} fill="#f6bd60" stroke="#050b16" strokeWidth="3" paintOrder="stroke" fontSize="12" fontWeight="800">m₂g</text>
                       <PanahTarik
                         asalX={375} asalY={asalYTegangan} ujungX={375} ujungY={ujungYTegangan}
                         warna="#8ea7ff" marker="panah-katrol-tegangan-rev" label="T"
                         onMulai={(event) => mulaiTarik("tegangan", event, { asalX: 375, asalY: asalYTegangan, skala })}
                       />
-                      <text x="270" y="310" textAnchor="middle" fill="#91a1b8" fontSize="11">Perpindahan: {gerakKatrol.posisi.toFixed(2)} m · Kecepatan: {gerakKatrol.kecepatan.toFixed(2)} m/s</text>
+                      <text x="270" y="310" textAnchor="middle" fill="#91a1b8" fontSize="11">{isId ? "Perpindahan" : "Displacement"}: {gerakKatrol.posisi.toFixed(2)} m · {isId ? "Kecepatan" : "Velocity"}: {gerakKatrol.kecepatan.toFixed(2)} m/s</text>
                     </>
                   );
                 })()}
                 <rect x="0" y="340" width="540" height="50" fill="url(#arsir-lantai-katrol)" opacity=".85" />
                 <line x1="0" y1="340" x2="540" y2="340" stroke="#91a1b8" strokeWidth="4" />
-                <text x="18" y="332" fill="#91a1b8" fontSize="10">LANTAI DASAR</text>
+                <text x="18" y="332" fill="#91a1b8" fontSize="10">{isId ? "LANTAI DASAR" : "BASE FLOOR"}</text>
               </svg>
               <p className="dinamika-status-line">{arahKatrol}</p>
-              <KontrolSimulasiDinamika waktu={playback.waktu} durasi={DURASI} berjalan={playback.berjalan} pengaliKecepatan={playback.pengaliKecepatan} tanpaBatas={playback.tanpaBatas} onUbahModeWaktu={playback.setTanpaBatas} onUbahWaktu={playback.aturWaktu} onMulaiJeda={playback.mulaiJeda} onAturUlang={resetPlayback} onUbahKecepatan={playback.setPengaliKecepatan} bisaGeser={false} />
+              <KontrolSimulasiDinamika waktu={playback.waktu} durasi={durasi} onUbahDurasi={(value) => { setDurasi(Math.max(1, Math.min(60, value))); playback.aturUlang(); resetGerak(); }} berjalan={playback.berjalan} pengaliKecepatan={playback.pengaliKecepatan} tanpaBatas={playback.tanpaBatas} onUbahModeWaktu={playback.setTanpaBatas} onUbahWaktu={playback.aturWaktu} onMulaiJeda={playback.mulaiJeda} onAturUlang={playback.aturUlang} onUbahKecepatan={playback.setPengaliKecepatan} bisaGeser={false} />
             </section>
             <section className="metrics-grid dinamika-metrics-grid">
-              <KartuBesaran label="Percepatan sistem" value={`${hasilKatrol.percepatan.toFixed(3)} m/s²`} ikon="a" aksen="mint" />
-              <KartuBesaran label="Tegangan tali" value={`${hasilKatrol.tegangan.toFixed(2)} N`} ikon="T" aksen="blue" />
-              <KartuBesaran label="Perpindahan m₂" value={`${gerakKatrol.posisi.toFixed(2)} m`} ikon="s" aksen="amber" />
+              <KartuBesaran label={isId ? "Percepatan sistem" : "System acceleration"} value={`${hasilKatrol.percepatan.toFixed(3)} m/s²`} ikon="a" aksen="mint" />
+              <KartuBesaran label={isId ? (isId ? "Tegangan tali" : "Rope tension") : "String tension"} value={`${hasilKatrol.tegangan.toFixed(2)} N`} ikon="T" aksen="blue" />
+              <KartuBesaran label={isId ? "Perpindahan m₂" : "Displacement m₂"} value={`${gerakKatrol.posisi.toFixed(2)} m`} ikon="s" aksen="amber" />
             </section>
-            <GrafikWaktuNyata judul="Grafik gerak sistem katrol" waktu={playback.waktu} seri={seriGrafik} waktuSampel={(mode === "katrol" ? riwayatKatrol : riwayatLift).map((item) => item.waktu)} keterangan="Saat massa mencapai batas lintasan, percepatan dan kecepatan menjadi nol karena kontak mekanis." />
+            <GrafikWaktuNyata judul={isId ? "Grafik gerak sistem katrol" : "Pulley system motion graph"} waktu={playback.waktu} seri={seriGrafik} waktuSampel={(mode === "katrol" ? riwayatKatrol : riwayatLift).map((item) => item.waktu)} keterangan={isId ? "Saat massa mencapai batas lintasan, percepatan dan kecepatan menjadi nol karena kontak mekanis." : "When a mass reaches the track limit, acceleration and velocity become zero due to mechanical contact."} />
           </div>
         </div>
       ) : (
         <div className="dinamika-workspace">
-          <aside className="panel control-panel">
-            <div className="panel-heading"><div><p className="eyebrow">PENGATURAN</p><h2>Parameter lift</h2></div></div>
-            <ParameterSlider label="Massa orang atau benda" value={massaLift} min={20} max={150} step={1} unit="kg" onChange={setMassaLift} />
-            <ParameterSlider label="Percepatan awal lift" value={percepatanLift} min={-2} max={2} step={0.1} unit="m/s²" onChange={setPercepatanLift} />
-            <ParameterSlider label="Percepatan gravitasi" value={gravitasi} min={1} max={20} step={0.01} unit="m/s²" onChange={setGravitasi} />
-            <p className="dinamika-control-note">Lift berangkat dari keadaan diam, dipercepat pada paruh perjalanan, lalu direm dengan percepatan konstan hingga berhenti. Drag panah N untuk mengubah percepatan perintah; drag W untuk mengubah massa.</p>
-          </aside>
+          <DockableControlPanel><aside className="panel control-panel">
+            <div className="panel-heading"><div><p className="eyebrow">{isId ? "PENGATURAN" : "SETTINGS"}</p><h2>{isId ? "Parameter lift" : "Elevator parameters"}</h2></div></div>
+            <ParameterSlider label={isId ? "Massa orang atau benda" : "Person or object mass"} value={massaLift} min={20} max={150} step={1} unit="kg" onChange={setMassaLift} />
+            <ParameterSlider label={isId ? "Percepatan awal lift" : "Initial elevator acceleration"} value={percepatanLift} min={-2} max={2} step={0.1} unit="m/s²" onChange={setPercepatanLift} />
+            <ParameterSlider label={isId ? (isId ? "Percepatan gravitasi" : "Gravitational acceleration") : "Gravitational acceleration"} value={gravitasi} min={1} max={20} step={0.01} unit="m/s²" onChange={setGravitasi} />
+            <p className="dinamika-control-note">{isId ? "Lift berangkat dari keadaan diam, dipercepat pada paruh perjalanan, lalu direm hingga berhenti. Tarik panah N untuk mengubah percepatan; tarik W untuk mengubah massa." : "The elevator starts at rest, accelerates through the first half of its trip, then brakes to a stop. Drag vector N to change acceleration; drag W to change mass."}</p>
+          </aside></DockableControlPanel>
 
           <div className="dinamika-main-column">
             <section className="panel dinamika-visual-panel">
-              <div className="simulation-header"><div><p className="eyebrow">ANIMASI RUANG LIFT</p><h2>Kabin, penumpang, dan vektor gaya</h2></div><span className="model-badge">GERAK BERAKSELERASI</span></div>
-              <svg viewBox="0 0 540 390" role="img" aria-label="Animasi kabin lift bergerak mulus, dengan partikel udara dan panah gaya yang mengikuti kabin" onPointerMove={gerakTarik} onPointerUp={akhiriTarik} onPointerCancel={akhiriTarik}>
+              <div className="simulation-header"><div><p className="eyebrow">{isId ? "ANIMASI RUANG LIFT" : "ELEVATOR ANIMATION"}</p><h2>{isId ? "Kabin, penumpang, dan vektor gaya" : "Cabin, passenger, and force vectors"}</h2></div><span className="model-badge">{isId ? "GERAK BERAKSELERASI" : "ACCELERATED MOTION"} · {scaleMode === "actual-scale" ? (isId ? "SKALA NYATA" : "ACTUAL SCALE") : (isId ? "KOTAK BATAS" : "BOUNDARY BOX")}</span></div>
+              <svg viewBox="0 0 540 390" role="img" aria-label={isId ? "Animasi kabin lift bergerak mulus, dengan partikel udara dan panah gaya yang mengikuti kabin" : "Smooth elevator cabin animation with air particles and force vectors that follow the cabin"} onPointerMove={gerakTarik} onPointerUp={akhiriTarik} onPointerCancel={akhiriTarik}>
                 <defs>
                   <marker id="panah-lift-normal-rev" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8ea7ff" /></marker>
                   <marker id="panah-lift-berat-rev" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f6bd60" /></marker>
@@ -457,7 +463,7 @@ export default function SistemDinamikaSimulasi() {
                   })}
                 </g>
                 {(() => {
-                  const perpindahanPiksel = gerakLift.posisi * 40;
+                  const perpindahanPiksel = gerakLift.posisi * (scaleMode === "actual-scale" ? 40 : 32);
                   const pusatX = 270;
                   const asalY = 207;
                   const skala = 82 / Math.max(2 * massaLift * gravitasi, 1);
@@ -485,33 +491,33 @@ export default function SistemDinamikaSimulasi() {
                     </g>
                   );
                 })()}
-                <text x="270" y="378" textAnchor="middle" fill="#91a1b8" fontSize="11">Posisi: {gerakLift.posisi.toFixed(2)} m · Kecepatan: {gerakLift.kecepatan.toFixed(2)} m/s</text>
+                <text x="270" y="378" textAnchor="middle" fill="#91a1b8" fontSize="11">{isId ? "Posisi" : "Position"}: {gerakLift.posisi.toFixed(2)} m · {isId ? "Kecepatan" : "Velocity"}: {gerakLift.kecepatan.toFixed(2)} m/s</text>
               </svg>
               <p className="dinamika-status-line">
-                {hasilLift.gayaNormal < 1e-8 ? "Kontak lantai hilang: model gaya normal dibatasi nol." : gerakLift.kecepatan === 0 ? "Kabin diam di lantai tujuan." : gerakLift.kecepatan > 0 ? "Kabin sedang bergerak naik; partikel udara mengikuti gerak kabin." : "Kabin sedang bergerak turun; partikel udara mengikuti gerak kabin."}
-                {` Percepatan aktual ${gerakLift.percepatan.toFixed(2)} m/s².`}
+                {hasilLift.gayaNormal < 1e-8 ? (isId ? "Kontak lantai hilang: model gaya normal dibatasi nol." : "Floor contact is lost: the normal force is limited to zero.") : gerakLift.kecepatan === 0 ? (isId ? "Kabin diam di lantai tujuan." : "The cabin is stationary at its destination floor.") : gerakLift.kecepatan > 0 ? (isId ? "Kabin sedang bergerak naik; partikel udara mengikuti gerak kabin." : "The cabin is moving up; air particles follow its motion.") : (isId ? "Kabin sedang bergerak turun; partikel udara mengikuti gerak kabin." : "The cabin is moving down; air particles follow its motion.")}
+                {`${isId ? " Percepatan aktual " : " Actual acceleration "}${gerakLift.percepatan.toFixed(2)} m/s².`}
               </p>
-              <KontrolSimulasiDinamika waktu={playback.waktu} durasi={DURASI} berjalan={playback.berjalan} pengaliKecepatan={playback.pengaliKecepatan} tanpaBatas={playback.tanpaBatas} onUbahModeWaktu={playback.setTanpaBatas} onUbahWaktu={playback.aturWaktu} onMulaiJeda={playback.mulaiJeda} onAturUlang={resetPlayback} onUbahKecepatan={playback.setPengaliKecepatan} bisaGeser={false} />
+              <KontrolSimulasiDinamika waktu={playback.waktu} durasi={durasi} onUbahDurasi={(value) => { setDurasi(Math.max(1, Math.min(60, value))); playback.aturUlang(); resetGerak(); }} berjalan={playback.berjalan} pengaliKecepatan={playback.pengaliKecepatan} tanpaBatas={playback.tanpaBatas} onUbahModeWaktu={playback.setTanpaBatas} onUbahWaktu={playback.aturWaktu} onMulaiJeda={playback.mulaiJeda} onAturUlang={playback.aturUlang} onUbahKecepatan={playback.setPengaliKecepatan} bisaGeser={false} />
             </section>
             <section className="metrics-grid dinamika-metrics-grid">
-              <KartuBesaran label="Berat gravitasi" value={`${hasilLift.berat.toFixed(2)} N`} ikon="W" aksen="amber" />
-              <KartuBesaran label="Berat semu / normal" value={`${hasilLift.gayaNormal.toFixed(2)} N`} ikon="N" aksen="blue" />
-              <KartuBesaran label="Percepatan aktual lift" value={`${gerakLift.percepatan.toFixed(2)} m/s²`} ikon="a" aksen="mint" />
+              <KartuBesaran label={isId ? (isId ? "Berat gravitasi" : "Gravitational weight") : "Gravitational weight"} value={`${hasilLift.berat.toFixed(2)} N`} ikon="W" aksen="amber" />
+              <KartuBesaran label={isId ? "Berat semu / normal" : "Apparent weight / normal force"} value={`${hasilLift.gayaNormal.toFixed(2)} N`} ikon="N" aksen="blue" />
+              <KartuBesaran label={isId ? "Percepatan aktual lift" : "Actual elevator acceleration"} value={`${gerakLift.percepatan.toFixed(2)} m/s²`} ikon="a" aksen="mint" />
             </section>
-            <GrafikWaktuNyata judul="Grafik gerak kabin lift" waktu={playback.waktu} seri={seriGrafik} waktuSampel={riwayatLift.map((item) => item.waktu)} keterangan="Percepatan aktual berubah tanda saat kabin beralih dari fase akselerasi ke fase pengereman." />
+            <GrafikWaktuNyata judul={isId ? "Grafik gerak kabin lift" : "Elevator cabin motion graph"} waktu={playback.waktu} seri={seriGrafik} waktuSampel={riwayatLift.map((item) => item.waktu)} keterangan={isId ? "Percepatan aktual berubah tanda saat kabin beralih dari fase akselerasi ke fase pengereman." : "Actual acceleration changes sign as the cabin switches from acceleration to braking."} />
           </div>
         </div>
       )}
 
       <ModelMatematika
         deskripsi={mode === "katrol"
-          ? "Dua massa dihubungkan oleh tali ringan melalui katrol ideal. Perpindahan, kecepatan, dan percepatan mengikuti gerak dipercepat konstan sampai massa mencapai batas lintasan."
-          : "Lift bergerak dari keadaan diam dengan fase percepatan konstan, kemudian perlambatan konstan hingga berhenti. Gaya normal dihitung memakai percepatan aktual pada fase yang sedang berlangsung."}
+          ? (isId ? "Dua massa dihubungkan oleh tali ringan melalui katrol ideal. Perpindahan, kecepatan, dan percepatan mengikuti gerak dipercepat konstan sampai massa mencapai batas lintasan." : "Two masses are connected by a light rope over an ideal pulley. Displacement, velocity, and acceleration follow constant-acceleration motion until a mass reaches the track limit.")
+          : (isId ? "Lift bergerak dari keadaan diam dengan fase percepatan konstan, kemudian perlambatan konstan hingga berhenti. Gaya normal dihitung memakai percepatan aktual pada fase yang sedang berlangsung." : "The elevator starts at rest, accelerates at a constant rate, then decelerates uniformly to a stop. The normal force uses the actual acceleration in each phase.")}
         persamaan={mode === "katrol" ? persamaanKatrol : persamaanLift}
         variabel={mode === "katrol" ? variabelKatrol : variabelLift}
         catatan={mode === "katrol"
-          ? "Tali digambar lebih tipis dan memiliki rentangan panjang. Lantai dasar menjadi batas lintasan massa. Saat batas tersebut tercapai, model menghentikan gerak karena tumbukan dengan lantai; model tidak melanjutkan gerak menembus lantai."
-          : "Profil lift berbentuk segitiga kecepatan: percepatan konstan pada paruh pertama dan perlambatan konstan pada paruh kedua. Posisi dan kecepatannya kontinu, tanpa pemotongan eksponensial atau lonjakan di akhir. Panah gaya berada dalam transformasi kabin yang sama sehingga selalu menempel dan mengikuti kabin."}
+          ? (isId ? "Tali digambar lebih tipis dan memiliki rentangan panjang. Lantai dasar menjadi batas lintasan massa. Saat batas tersebut tercapai, model menghentikan gerak karena tumbukan dengan lantai; model tidak melanjutkan gerak menembus lantai." : "The rope is drawn thin with a long span. The base floor defines the mass travel limit. When the mass reaches it, the model stops motion on contact rather than allowing it to pass through the floor.")
+          : (isId ? "Profil lift berbentuk segitiga kecepatan: percepatan konstan pada paruh pertama dan perlambatan konstan pada paruh kedua. Posisi dan kecepatannya kontinu, tanpa pemotongan eksponensial atau lonjakan di akhir. Panah gaya berada dalam transformasi kabin yang sama sehingga selalu menempel dan mengikuti kabin." : "The elevator follows a triangular velocity profile: constant acceleration during the first half and constant deceleration during the second. Position and velocity remain continuous without exponential cutoffs or end-of-run jumps. Force arrows share the cabin transform and stay attached as it moves.")}
       />
     </section>
   );

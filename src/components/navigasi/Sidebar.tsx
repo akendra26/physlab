@@ -61,7 +61,7 @@ export default function Sidebar({
 
         {kinematikaTerbuka && (
           <nav className="module-navigation" aria-label="Sub-menu Kinematika">
-            <div className="navigation-section-label">KELOMPOK GERAK</div>
+            <div className="navigation-section-label">MODUL KINEMATIKA</div>
             {DAFTAR_MODUL_KINEMATIKA.map((modul, indeks) => {
               const aktif = kategoriAktif === "kinematika" && modulAktif === modul.id;
               return (
@@ -98,13 +98,13 @@ export default function Sidebar({
         >
           <span className="category-symbol">▰</span>
           <span>Dinamika</span>
-          <span className="category-description">3 sub-menu</span>
+          <span className="category-description">8 sub-menu</span>
           <span className={`category-chevron ${dinamikaTerbuka ? "is-open" : ""}`} aria-hidden="true">⌄</span>
         </button>
 
         {dinamikaTerbuka && (
           <nav className="module-navigation" aria-label="Sub-menu Dinamika">
-            <div className="navigation-section-label">KELOMPOK DINAMIKA</div>
+            <div className="navigation-section-label">MODUL DINAMIKA</div>
             {DAFTAR_MODUL_DINAMIKA.map((modul, indeks) => {
               const aktif = kategoriAktif === "dinamika" && modulDinamikaAktif === modul.id;
               return (

@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import useCanvasDimensions from "../../../components/simulasi/useCanvasDimensions";
 import {
   hitungKeadaanGerakVertikal,
   hitungMetrikGerakVertikal,
@@ -9,6 +10,7 @@ type Props = {
   parameter: ParameterGerakVertikal;
   waktu: number;
   tampilkanVektor: boolean;
+  scaleMode?: "boundary-box" | "actual-scale";
 };
 
 const WARNA = {
@@ -23,31 +25,27 @@ const WARNA = {
 };
 
 /** Kanvas gerak vertikal dengan arah sumbu positif ke atas. */
-export default function VisualisasiGerakVertikal({ parameter, waktu, tampilkanVektor }: Props) {
-  const kanvasRef = useRef<HTMLCanvasElement>(null);
+export default function VisualisasiGerakVertikal({ parameter, waktu, tampilkanVektor, scaleMode = "boundary-box" }: Props) {
+  const { canvasRef: kanvasRef, width: lebar, height: tinggi, pixelRatio: rasioPiksel } = useCanvasDimensions(16 / 9, 220);
 
   useEffect(() => {
     const kanvas = kanvasRef.current;
     const konteks = kanvas?.getContext("2d");
     if (!kanvas || !konteks) return;
 
-    const lebar = Math.max(320, kanvas.clientWidth);
-    const tinggi = 360;
-    const rasioPiksel = Math.min(window.devicePixelRatio || 1, 2);
     kanvas.width = Math.round(lebar * rasioPiksel);
     kanvas.height = Math.round(tinggi * rasioPiksel);
-    kanvas.style.height = `${tinggi}px`;
     konteks.setTransform(rasioPiksel, 0, 0, rasioPiksel, 0, 0);
 
     const metrik = hitungMetrikGerakVertikal(parameter);
-    const tinggiPlot = Math.max(1, metrik.tinggiMaksimum * 1.15);
+    const tinggiPlot = scaleMode === "boundary-box" ? 100 : Math.max(1, metrik.tinggiMaksimum * 1.15);
     const marginAtas = 48;
     const marginBawah = 46;
     const garisTanah = tinggi - marginBawah;
     const garisBenda = lebar * 0.48;
     const plotTinggi = tinggi - marginAtas - marginBawah;
     const kePikselY = (posisi: number) => garisTanah - (posisi / tinggiPlot) * plotTinggi;
-    const keadaan = hitungKeadaanGerakVertikal(parameter, Math.min(waktu, metrik.waktuTempuh));
+    const keadaan = hitungKeadaanGerakVertikal(parameter, Math.max(0, waktu));
     const posisiBendaY = kePikselY(keadaan.posisi);
 
     konteks.clearRect(0, 0, lebar, tinggi);
@@ -80,6 +78,15 @@ export default function VisualisasiGerakVertikal({ parameter, waktu, tampilkanVe
     konteks.stroke();
     konteks.fillStyle = WARNA.teks;
     konteks.fillText("Tanah (y = 0)", 50, garisTanah + 22);
+    konteks.strokeStyle = "rgba(145,182,255,.68)";
+    konteks.lineWidth = 1.5;
+    konteks.strokeRect(42, marginAtas, lebar - 64, plotTinggi);
+
+    // Boundary mode clips the body/trajectory at the fixed 100 m viewport.
+    konteks.save();
+    konteks.beginPath();
+    konteks.rect(42, marginAtas, lebar - 64, plotTinggi);
+    konteks.clip();
 
     // Penanda tinggi maksimum.
     const posisiPuncak = kePikselY(metrik.tinggiMaksimum);
@@ -132,6 +139,25 @@ export default function VisualisasiGerakVertikal({ parameter, waktu, tampilkanVe
       konteks.fillText("v", awalX + 9, ujungY + 4);
     }
 
+    // Vektor percepatan gravitasi konstan, selalu mengarah ke bawah.
+    const gravitasiX = garisBenda - 40;
+    const gravitasiY1 = Math.max(marginAtas + 8, posisiBendaY - 12);
+    const gravitasiY2 = Math.min(garisTanah - 8, gravitasiY1 + 48);
+    konteks.strokeStyle = "#f6bd60";
+    konteks.fillStyle = "#f6bd60";
+    konteks.lineWidth = 2.5;
+    konteks.beginPath();
+    konteks.moveTo(gravitasiX, gravitasiY1);
+    konteks.lineTo(gravitasiX, gravitasiY2);
+    konteks.stroke();
+    konteks.beginPath();
+    konteks.moveTo(gravitasiX, gravitasiY2);
+    konteks.lineTo(gravitasiX - 5, gravitasiY2 - 8);
+    konteks.lineTo(gravitasiX + 5, gravitasiY2 - 8);
+    konteks.closePath();
+    konteks.fill();
+    konteks.fillText("g", gravitasiX - 4, gravitasiY2 + 13);
+
     // Benda bergerak.
     konteks.shadowColor = "rgba(255, 202, 112, 0.35)";
     konteks.shadowBlur = 16;
@@ -141,6 +167,8 @@ export default function VisualisasiGerakVertikal({ parameter, waktu, tampilkanVe
     konteks.fill();
     konteks.shadowBlur = 0;
 
+    konteks.restore();
+
     // Informasi keadaan saat ini.
     konteks.fillStyle = WARNA.teks;
     konteks.font = "12px Inter, system-ui, sans-serif";
@@ -148,14 +176,15 @@ export default function VisualisasiGerakVertikal({ parameter, waktu, tampilkanVe
     konteks.fillText(`y = ${keadaan.posisi.toFixed(2)} m`, 150, 20);
     konteks.fillText(`v = ${keadaan.kecepatan.toFixed(2)} m/s`, 260, 20);
     konteks.fillText(`a = ${keadaan.percepatan.toFixed(2)} m/s²`, 50, 39);
-  }, [parameter, waktu, tampilkanVektor]);
+    konteks.fillText(scaleMode === "boundary-box" ? "BOUNDARY BOX · skala tetap 0–100 m" : "ACTUAL SCALE · auto range", 50, tinggi - 8);
+  }, [parameter, waktu, tampilkanVektor, scaleMode, lebar, tinggi, rasioPiksel]);
 
   return (
     <canvas
       ref={kanvasRef}
       role="img"
       aria-label="Visualisasi benda bergerak vertikal terhadap gravitasi"
-      style={{ display: "block", width: "100%", borderRadius: 12 }}
+      style={{ display: "block", width: "100%", height: tinggi, aspectRatio: `${lebar}/${tinggi}`, borderRadius: 12 }}
     />
   );
 }

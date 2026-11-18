@@ -1,5 +1,6 @@
 
 import { useMemo, useState } from "react";
+import { DockableControlPanel, useKinematicsScaleMode } from "../../../components/simulasi/SimulationExperience";
 
 import GrafikMini from "../../../components/simulasi/GrafikMini";
 import KartuBesaran from "../../../components/simulasi/KartuBesaran";
@@ -41,16 +42,51 @@ function formatPeriode(nilai: number | null): string {
     : `${nilai.toFixed(2)} s`;
 }
 
+type SubMenuMelingkar = "gmb" | "gmbb" | "gear";
+
 export default function GerakMelingkarSimulasi() {
+  const [subMenu, setSubMenu] = useState<SubMenuMelingkar>("gmb");
+  return (
+    <>
+      <section className="mode-selector panel circular-submenu-selector">
+        <div className="mode-selector-heading">
+          <div><p className="eyebrow">GERAK ROTASI / PILIH EKSPERIMEN</p><h2>Gerak Melingkar</h2></div>
+          <span className="mode-indicator">{subMenu === "gear" ? "GEAR SYSTEM" : subMenu.toUpperCase()} AKTIF</span>
+        </div>
+        <div className="mode-tabs circular-mode-cards" role="group" aria-label="Pilihan utama gerak melingkar">
+          <button id="circular-tab-gmb" type="button" aria-pressed={subMenu === "gmb"} className={`mode-tab circular-mode-card ${subMenu === "gmb" ? "active" : ""}`} onClick={() => setSubMenu("gmb")}>
+            <span className="mode-tab-code">01</span>
+            <span className="mode-tab-content"><strong>GMB</strong><small>Kecepatan sudut konstan</small></span>
+            <span className="circular-card-mark" aria-hidden="true">↗</span>
+          </button>
+          <button id="circular-tab-gmbb" type="button" aria-pressed={subMenu === "gmbb"} className={`mode-tab circular-mode-card ${subMenu === "gmbb" ? "active" : ""}`} onClick={() => setSubMenu("gmbb")}>
+            <span className="mode-tab-code">02</span>
+            <span className="mode-tab-content"><strong>GMBB</strong><small>Percepatan sudut konstan</small></span>
+            <span className="circular-card-mark" aria-hidden="true">↗</span>
+          </button>
+          <button id="circular-tab-gear" type="button" aria-pressed={subMenu === "gear"} className={`mode-tab circular-mode-card ${subMenu === "gear" ? "active" : ""}`} onClick={() => setSubMenu("gear")}>
+            <span className="mode-tab-code">03</span>
+            <span className="mode-tab-content"><strong>Gear System</strong><small>Hubungan tiga roda & transmisi</small></span>
+            <span className="circular-card-mark" aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </section>
+      {subMenu === "gear" ? <RodaRodaSimulasi /> : <GerakMelingkarKonten key={subMenu} modeAwal={subMenu} />}
+    </>
+  );
+}
+
+function GerakMelingkarKonten({ modeAwal }: { modeAwal: Exclude<SubMenuMelingkar, "gear"> }) {
   const [parameter, setParameter] =
     useState<ParameterGerakMelingkar>(
-      PARAMETER_AWAL_GERAK_MELINGKAR
+      { ...PARAMETER_AWAL_GERAK_MELINGKAR, mode: modeAwal }
     );
 
   const [tampilkanVektor, setTampilkanVektor] =
     useState(true);
 
   const playback = usePlayback(parameter.durasi);
+  const scaleMode = useKinematicsScaleMode();
 
   const mode = parameter.mode;
   const informasi = INFORMASI[mode];
@@ -72,9 +108,9 @@ export default function GerakMelingkarSimulasi() {
     () =>
       hitungKeadaanGerakMelingkar(
         parameter,
-        (playback.tanpaBatas ? playback.waktu % Math.max(parameter.durasi, 0.01) : Math.min(playback.waktu, parameter.durasi))
+        (playback.tanpaBatas ? playback.waktu % Math.max(parameter.durasi, 0.01) : playback.waktu)
       ),
-    [parameter, playback.waktu]
+    [parameter, playback.tanpaBatas, playback.waktu]
   );
 
   // Data grafik gerak melingkar.
@@ -127,21 +163,7 @@ export default function GerakMelingkarSimulasi() {
       [kunci]: nilai,
     }));
 
-    playback.setBerjalan(false);
-    playback.aturUlang();
-  };
-
-  // Mengganti mode GMB atau GMBB.
-  const pilihMode = (modeBaru: ModeGerakMelingkar) => {
-    if (modeBaru === mode) return;
-
-    setParameter((sebelumnya) => ({
-      ...sebelumnya,
-      mode: modeBaru,
-    }));
-
-    playback.setBerjalan(false);
-    playback.aturUlang();
+    // The current clock is retained; motion is recalculated with the new values.
   };
 
   // Mengembalikan parameter ke keadaan awal.
@@ -225,70 +247,13 @@ export default function GerakMelingkarSimulasi() {
       </section>
 
       {/* =====================================
-          PEMILIHAN MODE GMB DAN GMBB
-      ====================================== */}
-
-      <section className="mode-selector panel">
-        <div className="mode-selector-heading">
-          <div>
-            <p className="eyebrow">PILIH JENIS GERAK</p>
-            <h2>Mode Simulasi</h2>
-          </div>
-
-          <span className="mode-indicator">
-            {mode.toUpperCase()} AKTIF
-          </span>
-        </div>
-
-        <div
-          className="mode-tabs"
-          role="tablist"
-          aria-label="Jenis gerak melingkar"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "gmb"}
-            className={`mode-tab ${
-              mode === "gmb" ? "active" : ""
-            }`}
-            onClick={() => pilihMode("gmb")}
-          >
-            <span className="mode-tab-code">01</span>
-
-            <span className="mode-tab-content">
-              <strong>GMB</strong>
-              <small>Gerak Melingkar Beraturan</small>
-            </span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "gmbb"}
-            className={`mode-tab ${
-              mode === "gmbb" ? "active" : ""
-            }`}
-            onClick={() => pilihMode("gmbb")}
-          >
-            <span className="mode-tab-code">02</span>
-
-            <span className="mode-tab-content">
-              <strong>GMBB</strong>
-              <small>Gerak Melingkar Berubah Beraturan</small>
-            </span>
-          </button>
-        </div>
-      </section>
-
-      {/* =====================================
           AREA SIMULASI
       ====================================== */}
 
       <section className="workspace">
         {/* PANEL PARAMETER */}
 
-        <aside className="control-panel panel">
+        <DockableControlPanel><aside className="control-panel panel">
           <div className="panel-heading">
             <div>
               <p className="eyebrow">
@@ -389,7 +354,7 @@ export default function GerakMelingkarSimulasi() {
             <span aria-hidden="true">↺</span>
             Kembalikan parameter awal
           </button>
-        </aside>
+        </aside></DockableControlPanel>
 
         {/* VISUALISASI DAN KONTROL */}
 
@@ -420,8 +385,9 @@ export default function GerakMelingkarSimulasi() {
               parameter={parameter}
               waktu={playback.tanpaBatas
                 ? playback.waktu % Math.max(parameter.durasi, 0.01)
-                : Math.min(playback.waktu, parameter.durasi)}
+                : playback.waktu}
               tampilkanVektor={tampilkanVektor}
+              scaleMode={scaleMode}
             />
 
             <KontrolWaktuSimulasi
@@ -506,8 +472,6 @@ export default function GerakMelingkarSimulasi() {
           )}
         </div>
       </section>
-
-      <RodaRodaSimulasi />
 
       {/* =====================================
           PERSAMAAN GERAK MELINGKAR

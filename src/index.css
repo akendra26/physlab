@@ -1,4 +1,6 @@
-/* Aturan dasar aplikasi dimuat melalui App.css. */
+@import "tailwindcss";
+
+/* Global reset; application components keep their scoped CSS modules/files. */
 :root {
   color-scheme: dark;
   font-synthesis: none;
@@ -13,4 +15,27 @@ body,
   min-width: 320px;
   min-height: 100%;
   margin: 0;
+}
+
+html { background: #090909; }
+body { overflow-x: hidden; }
+
+/* Native select controls follow the PhysLAB dark palette across all routes. */
+select,
+select.dinamika-select {
+  color-scheme: dark;
+  background-color: #18181b;
+  color: #f4f4f5;
+  border-color: rgba(232, 153, 115, .38);
+}
+select:hover { border-color: #e89973; }
+select:focus,
+select:focus-visible {
+  outline: none;
+  border-color: #e89973;
+  box-shadow: 0 0 0 2px rgba(232, 153, 115, .16);
+}
+select option {
+  background: #18181b;
+  color: #f4f4f5;
 }

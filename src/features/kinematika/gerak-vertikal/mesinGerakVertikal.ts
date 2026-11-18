@@ -2,7 +2,7 @@
  * Model gerak vertikal satu dimensi.
  * Sumbu y positif ke atas, sedangkan percepatan gravitasi selalu ke bawah.
  */
-export type ArahGerakVertikal = "atas" | "bawah";
+export type ArahGerakVertikal = "jatuh-bebas" | "atas" | "bawah";
 
 export type ParameterGerakVertikal = {
   arah: ArahGerakVertikal;
@@ -27,7 +27,7 @@ export type MetrikGerakVertikal = {
 };
 
 export const PARAMETER_AWAL_GERAK_VERTIKAL: ParameterGerakVertikal = {
-  arah: "atas",
+  arah: "jatuh-bebas",
   tinggiAwal: 5,
   kecepatanAwal: 15,
   gravitasi: 9.81,
@@ -52,8 +52,8 @@ function validasiParameter(parameter: ParameterGerakVertikal): void {
   if (parameter.gravitasi <= 0) {
     throw new Error("Percepatan gravitasi harus lebih besar dari nol.");
   }
-  if (parameter.arah !== "atas" && parameter.arah !== "bawah") {
-    throw new Error("Arah gerak harus dipilih ke atas atau ke bawah.");
+  if (parameter.arah !== "jatuh-bebas" && parameter.arah !== "atas" && parameter.arah !== "bawah") {
+    throw new Error("Mode gerak vertikal tidak dikenali.");
   }
 }
 
@@ -67,9 +67,8 @@ function validasiWaktu(waktu: number): void {
 export function dapatkanKecepatanAwalBertanda(
   parameter: ParameterGerakVertikal,
 ): number {
-  return parameter.arah === "atas"
-    ? parameter.kecepatanAwal
-    : -parameter.kecepatanAwal;
+  if (parameter.arah === "jatuh-bebas") return 0;
+  return parameter.arah === "atas" ? parameter.kecepatanAwal : -parameter.kecepatanAwal;
 }
 
 /** Menghitung waktu sejak benda dilepas hingga menyentuh tanah (y = 0). */
@@ -82,9 +81,7 @@ export function hitungMetrikGerakVertikal(
   const g = parameter.gravitasi;
   const diskriminan = v0 * v0 + 2 * g * parameter.tinggiAwal;
   const waktuTempuh = (v0 + Math.sqrt(diskriminan)) / g;
-  const waktuPuncak = parameter.arah === "atas" && v0 > 0
-    ? v0 / g
-    : 0;
+  const waktuPuncak = parameter.arah === "atas" && v0 > 0 ? v0 / g : 0;
   const tinggiMaksimum = parameter.arah === "atas"
     ? parameter.tinggiAwal + (v0 * v0) / (2 * g)
     : parameter.tinggiAwal;

@@ -1,4 +1,5 @@
 
+import { DockableControlPanel, useKinematicsScaleMode } from "../../../components/simulasi/SimulationExperience";
 import { useMemo, useState } from "react";
 
 import GrafikMini from "../../../components/simulasi/GrafikMini";
@@ -43,6 +44,7 @@ const INFORMASI: Record<
 
 export default function GerakLurusSimulasi() {
   const [mode, setMode] = useState<LinearMotionMode>("glb");
+  const scaleMode = useKinematicsScaleMode();
 
   const [parameter, setParameter] =
     useState<LinearMotionParams>(DEFAULT_LINEAR_PARAMS);
@@ -105,8 +107,7 @@ export default function GerakLurusSimulasi() {
       [kunci]: nilai,
     }));
 
-    playback.setBerjalan(false);
-    playback.aturUlang();
+    // Keep the running clock: the analytic state is re-evaluated at the current t.
   };
 
   // Mengganti mode GLB atau GLBB.
@@ -284,7 +285,7 @@ export default function GerakLurusSimulasi() {
       <section className="workspace">
         {/* PANEL PARAMETER */}
 
-        <aside className="control-panel panel">
+        <DockableControlPanel><aside className="control-panel panel">
           <div className="panel-heading">
             <div>
               <p className="eyebrow">
@@ -371,7 +372,7 @@ export default function GerakLurusSimulasi() {
             <span aria-hidden="true">↺</span>
             Kembalikan parameter awal
           </button>
-        </aside>
+        </aside></DockableControlPanel>
 
         {/* VISUALISASI DAN KONTROL */}
 
@@ -399,9 +400,10 @@ export default function GerakLurusSimulasi() {
             <VisualisasiGerakLurus
               mode={mode}
               params={parameter}
-              time={playback.tanpaBatas ? playback.waktu % Math.max(parameter.duration, 0.01) : Math.min(playback.waktu, parameter.duration)}
+              time={playback.tanpaBatas ? playback.waktu % Math.max(parameter.duration, 0.01) : playback.waktu}
               showVectors={vektorAktif}
               showAxes={sumbuAktif}
+              scaleMode={scaleMode}
             />
             <label className="toggle-control axis-toggle">
               <input type="checkbox" checked={sumbuAktif} onChange={(event) => setSumbuAktif(event.target.checked)} />
@@ -424,6 +426,7 @@ export default function GerakLurusSimulasi() {
               }}
               onMulaiJeda={playback.mulaiJeda}
               onAturUlang={playback.aturUlang}
+              onStop={() => playback.setBerjalan(false)}
               onUbahKecepatan={playback.setPengaliKecepatan}
               onUbahVektor={setVektorAktif}
             />

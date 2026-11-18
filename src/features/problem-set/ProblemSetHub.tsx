@@ -1,105 +1,24 @@
-import {
-  BANK_SOAL_PROBLEM_SET,
-  type ProgresProblemSet,
-} from "./dataProblemSet";
+import { useRef } from "react";
+import { BANK_SOAL_PROBLEM_SET, type ProgresProblemSet } from "./dataProblemSet";
+import { useAudioSfx } from "./useAudioSfx";
+import { useBahasa } from "../../i18n/BahasaContext";
 
-type ProblemSetHubProps = {
-  progres: ProgresProblemSet;
-  onPilihTopik: (topikId: string) => void;
-};
-
-export default function ProblemSetHub({ progres, onPilihTopik }: ProblemSetHubProps) {
-  const jumlahSemuaSoal = BANK_SOAL_PROBLEM_SET.reduce((jumlah, topik) => jumlah + topik.soal.length, 0);
-  const topikSelesai = BANK_SOAL_PROBLEM_SET.filter((topik) => progres.topikDikumpulkan?.[topik.id]).length;
-  const jumlahBenar = BANK_SOAL_PROBLEM_SET.reduce(
-    (jumlah, topik) => jumlah + (progres.topikDikumpulkan?.[topik.id]
-      ? topik.soal.filter((soal) => progres.percobaan[soal.id]?.benar).length
-      : 0),
-    0,
-  );
-  const persentaseTotal = jumlahSemuaSoal > 0 ? Math.round((jumlahBenar / jumlahSemuaSoal) * 100) : 0;
-
-  return (
-    <section className="ps-page" aria-labelledby="problem-set-title">
-      <header className="ps-page-heading">
-        <div>
-          <p className="ps-eyebrow">PUSAT LATIHAN · BANK SOAL FISIKA</p>
-          <div className="ps-title-row">
-            <div>
-              <h1 id="problem-set-title">Problem Set</h1>
-              <p className="ps-description">
-                Latih pemahaman konsep dan kemampuan berhitung melalui kumpulan soal terstruktur,
-                pemeriksaan otomatis, serta pembahasan berbasis persamaan fisika.
-              </p>
-            </div>
-            <span className="ps-status"><span /> 7 TOPIK TERSEDIA</span>
-          </div>
-        </div>
-      </header>
-
-      <section className="ps-overview" aria-label="Ringkasan progres pengerjaan">
-        <div className="ps-overview-copy">
-          <span className="ps-overview-label">PROGRES KESELURUHAN</span>
-          <strong>{topikSelesai}<small> / {BANK_SOAL_PROBLEM_SET.length} topik dikumpulkan · {jumlahBenar}/{jumlahSemuaSoal} benar</small></strong>
-          <div className="ps-overview-track"><span style={{ width: `${persentaseTotal}%` }} /></div>
-        </div>
-        <div className="ps-overview-percent">{persentaseTotal}<small>%</small></div>
-        <div className="ps-overview-note">Progres tersimpan otomatis di browser ini.</div>
-      </section>
-
-      <div className="ps-section-heading">
-        <div>
-          <p className="ps-eyebrow">PILIH MATERI</p>
-          <h2>Topik Problem Set</h2>
-        </div>
-        <span className="ps-count">{BANK_SOAL_PROBLEM_SET.length} MATERI · {jumlahSemuaSoal} SOAL LATIHAN</span>
-      </div>
-
-      <div className="ps-topic-grid">
-        {BANK_SOAL_PROBLEM_SET.map((topik) => {
-          const total = topik.soal.length;
-          const dikumpulkan = Boolean(progres.topikDikumpulkan?.[topik.id]);
-          const benar = dikumpulkan
-            ? topik.soal.filter((soal) => progres.percobaan[soal.id]?.benar).length
-            : 0;
-          const persen = dikumpulkan && total ? Math.round((benar / total) * 100) : 0;
-          const selesai = dikumpulkan;
-
-          return (
-            <button
-              className={`ps-topic-card ps-tone-${topik.warna}`}
-              key={topik.id}
-              type="button"
-              onClick={() => onPilihTopik(topik.id)}
-              aria-label={`Buka ${topik.judul}, ${benar} dari ${total} soal benar`}
-            >
-              <div className="ps-card-topline">
-                <span className="ps-topic-number">TOPIK {String(topik.nomor).padStart(2, "0")}</span>
-                <span className="ps-topic-icon" aria-hidden="true">{topik.simbol}</span>
-              </div>
-              <span className="ps-topic-domain">{topik.bidang.toUpperCase()} · {topik.singkatan}</span>
-              <h3>{topik.judul}</h3>
-              <p>{topik.deskripsi}</p>
-              <div className="ps-card-meta">
-                <span>{total} soal</span>
-                <span>{topik.estimasiMenit} menit</span>
-                <span>{selesai ? `${benar}/${total} benar` : "Belum dikumpulkan"}</span>
-              </div>
-              <div className="ps-topic-progress" aria-label={`Progres ${persen}%`}>
-                <span style={{ width: `${persen}%` }} />
-              </div>
-              <div className="ps-card-action">
-                <span>{selesai ? "Lihat hasil / retake" : "Mulai / lanjutkan latihan"}</span>
-                <span aria-hidden="true">↗</span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      <p className="ps-mock-note">
-        <strong>Catatan:</strong> Soal-soal ini merupakan latihan konseptual dengan model ideal dan satuan SI. Periksa asumsi pada setiap soal sebelum menerapkan hasilnya ke situasi nyata.
-      </p>
-    </section>
-  );
+type Props = { progres: ProgresProblemSet; onPilihTopik: (topikId: string) => void };
+const ICONS = ["↔","⌁","ΣF","⚙","∿","↕","ϟ","⇄"];
+const TITLES_EN = ["Cart & Linear Motion","Projectile Motion","Newtonian Dynamics","Atwood Pulley","Springs & Oscillations","Lift / Elevator","Work & Energy","Momentum & Impulse"];
+export default function ProblemSetHub({ progres, onPilihTopik }: Props) {
+ const language=useBahasa(); const en=language==="en";
+ const track = useRef<HTMLDivElement>(null);
+ const {play}=useAudioSfx();
+ const jumlahSemuaSoal=BANK_SOAL_PROBLEM_SET.reduce((n,t)=>n+t.soal.length,0);
+ const jumlahBenar=BANK_SOAL_PROBLEM_SET.reduce((n,t)=>n+t.soal.filter(s=>progres.percobaan[s.id]?.benar).length,0);
+ const persen=jumlahSemuaSoal?Math.round(jumlahBenar/jumlahSemuaSoal*100):0;
+ const scroll=(direction:number)=>{play("whoosh");track.current?.scrollBy({left:direction*310,behavior:"smooth"});};
+ return <section className="ps-page ps-trial-page" data-sfx-local="true" aria-labelledby="problem-set-title">
+  <header className="ps-page-heading"><div><p className="ps-eyebrow">{en?"TRIAL CHAMBERS · PHYSLAB":"TRIAL CHAMBERS · PHYSLAB"}</p><div className="ps-title-row"><div><h1 id="problem-set-title">Problem Set</h1><p className="ps-description">{en?"Eight challenge chambers to test intuition, concepts, and numerical precision.":"Delapan ruang tantangan untuk menguji intuisi, konsep, dan ketelitian berhitung."}</p></div><span className="ps-status"><span/> {en?"8 CHAMBERS":"8 CHAMBERS"}</span></div></div></header>
+  <section className="ps-overview" aria-label="Ringkasan progres"><div className="ps-overview-copy"><span className="ps-overview-label">{en?"OVERALL PROGRESS":"PROGRES KESELURUHAN"}</span><strong>{jumlahBenar}<small> / {jumlahSemuaSoal} {en?"correct answers":"soal benar"}</small></strong><div className="ps-overview-track"><span style={{width:`${persen}%`}}/></div></div><div className="ps-overview-percent">{persen}<small>%</small></div><div className="ps-overview-note">{en?"Progress is saved automatically in this browser.":"Progres tersimpan otomatis di browser ini."}</div></section>
+  <div className="ps-section-heading"><div><p className="ps-eyebrow">{en?"CHOOSE A CHAMBER":"PILIH CHAMBER"}</p><h2>{en?"Trial Chambers":"Trial Chambers"}</h2></div><div className="ps-carousel-controls"><button type="button" aria-label={en?"Previous":"Sebelumnya"} onClick={()=>scroll(-1)} onMouseEnter={()=>play("hover")}>←</button><button type="button" aria-label={en?"Next":"Berikutnya"} onClick={()=>scroll(1)} onMouseEnter={()=>play("hover")}>→</button></div></div>
+  <div className="ps-carousel-track" ref={track}>{BANK_SOAL_PROBLEM_SET.map((topik,i)=>{const benar=topik.soal.filter(s=>progres.percobaan[s.id]?.benar).length;const total=topik.soal.length;const pct=total?Math.round(benar/total*100):0;return <button className={`ps-topic-card ps-trial-card ps-tone-${topik.warna}`} key={topik.id} type="button" onClick={()=>{play("click");onPilihTopik(topik.id);}} onMouseEnter={()=>play("hover")}><div className="ps-card-topline"><span className="ps-topic-number">{en?"CHAMBER":"CHAMBER"} {String(i+1).padStart(2,"0")}</span><span className="ps-topic-icon">{ICONS[i]}</span></div><span className="ps-topic-domain">{en?(i<2?"KINEMATICS": "DYNAMICS"):topik.bidang.toUpperCase()} · {topik.singkatan}</span><h3>{en?TITLES_EN[i]:topik.judul}</h3><p>{en?([ "Analyze cart motion, position, velocity, and acceleration along a straight path.","Resolve two-dimensional motion into horizontal and vertical components.","Analyze net force, normal force, friction, and forces at any angle.","Calculate acceleration and rope tension in an ideal pulley system.","Study period, frequency, and damping in spring systems.","Calculate normal force and apparent weight in an accelerating elevator.","Connect work done by a force with changes in kinetic and potential energy.","Apply impulse, momentum change, and conservation of momentum."][i]):topik.deskripsi}</p><div className="ps-card-meta"><span>{total} {en?"questions":"soal"}</span><span>{topik.estimasiMenit} {en?"min":"menit"}</span><span>{benar}/{total} {en?"correct":"benar"}</span></div><div className="ps-topic-progress"><span style={{width:`${pct}%`}}/></div><div className="ps-card-action"><span>{benar?(en?"Continue challenge":"Lanjutkan tantangan"):(en?"Enter chamber":"Masuki chamber")}</span><span>↗</span></div></button>})}</div>
+  <p className="ps-mock-note"><strong>{en?"Note:":"Catatan:"}</strong> {en?"The question bank contains structured practice. Use the explanations to check your reasoning, not only the final result.":"Bank soal memuat materi latihan terstruktur. Gunakan pembahasan untuk memeriksa proses, bukan hanya hasil akhir."}</p>
+ </section>;
 }

@@ -2,7 +2,7 @@ type Props = {
   label: string;
   value: string;
   ikon: string;
-  aksen: "mint" | "blue" | "amber";
+  aksen: "mint" | "blue" | "amber" | "rose";
 };
 
 export default function KartuBesaran({ label, value, ikon, aksen }: Props) {

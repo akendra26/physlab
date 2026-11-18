@@ -8,6 +8,7 @@ type Props = {
   step: number;
   unit: string;
   onChange: (value: number) => void;
+  disabled?: boolean;
 };
 
 /**
@@ -22,6 +23,7 @@ export default function ParameterSlider({
   step,
   unit,
   onChange,
+  disabled = false,
 }: Props) {
   const presisi = Math.max(0, (String(step).split(".")[1] ?? "").length);
   const [draf, setDraf] = useState(String(value));
@@ -54,6 +56,7 @@ export default function ParameterSlider({
             className="parameter-number-input"
             type="text"
             inputMode="decimal"
+            disabled={disabled}
             aria-label={`${label}, nilai numerik`}
             value={draf}
             onFocus={() => { sedangFokus.current = true; }}
@@ -87,6 +90,7 @@ export default function ParameterSlider({
 
       <input
         type="range"
+        disabled={disabled}
         min={min}
         max={max}
         step={step}

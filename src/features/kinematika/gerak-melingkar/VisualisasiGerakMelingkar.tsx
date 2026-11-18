@@ -1,208 +1,103 @@
-import { useEffect, useRef } from "react";
-import {
-  hitungKeadaanGerakMelingkar,
-  type ParameterGerakMelingkar,
-} from "./mesinGerakMelingkar";
+import { useEffect } from "react";
+import useCanvasDimensions from "../../../components/simulasi/useCanvasDimensions";
+import { hitungKeadaanGerakMelingkar, type ParameterGerakMelingkar } from "./mesinGerakMelingkar";
 
 type Props = {
   parameter: ParameterGerakMelingkar;
   waktu: number;
   tampilkanVektor: boolean;
+  scaleMode?: "boundary-box" | "actual-scale";
 };
+const COLORS = { background: "#0b1422", grid: "rgba(148,163,184,.13)", trail: "#55e0c1", object: "#ffca70", text: "#9aabc2", radius: "#8ea7ff", velocity: "#f28e8e", centripetal: "#f6bd60" };
 
-const WARNA = {
-  latar: "#0b1422",
-  kisi: "rgba(148, 163, 184, 0.13)",
-  lintasan: "#55e0c1",
-  benda: "#ffca70",
-  teks: "#9aabc2",
-  radius: "#8ea7ff",
-  kecepatan: "#f28e8e",
-  sentripetal: "#f6bd60",
-};
-
-/** Kanvas lintasan melingkar dengan vektor kecepatan tangensial dan percepatan sentripetal. */
-export default function VisualisasiGerakMelingkar({ parameter, waktu, tampilkanVektor }: Props) {
-  const kanvasRef = useRef<HTMLCanvasElement>(null);
+/** Lintasan melingkar responsif dengan skala tetap atau auto-scale berbasis jari-jari fisik. */
+export default function VisualisasiGerakMelingkar({ parameter, waktu, tampilkanVektor, scaleMode = "boundary-box" }: Props) {
+  const { canvasRef, width, height, pixelRatio } = useCanvasDimensions(16 / 9, 300);
 
   useEffect(() => {
-    const kanvas = kanvasRef.current;
-    const konteks = kanvas?.getContext("2d");
-    if (!kanvas || !konteks) return;
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    canvas.width = Math.round(width * pixelRatio);
+    canvas.height = Math.round(height * pixelRatio);
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
-    const lebar = Math.max(320, kanvas.clientWidth);
-    const tinggi = 380;
-    const rasioPiksel = Math.min(window.devicePixelRatio || 1, 2);
-    kanvas.width = Math.round(lebar * rasioPiksel);
-    kanvas.height = Math.round(tinggi * rasioPiksel);
-    kanvas.style.height = `${tinggi}px`;
-    konteks.setTransform(rasioPiksel, 0, 0, rasioPiksel, 0, 0);
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const maxRadius = Math.min(142, width * 0.22, (height - 100) / 2);
+    const radiusPx = scaleMode === "actual-scale"
+      ? Math.max(6, maxRadius * (parameter.jariJari / 10))
+      : maxRadius * 0.82;
+    const state = hitungKeadaanGerakMelingkar(parameter, Math.min(waktu, parameter.durasi));
+    const x = centerX + radiusPx * Math.cos(state.sudut);
+    const y = centerY - radiusPx * Math.sin(state.sudut);
 
-    const pusatX = lebar / 2;
-    const pusatY = tinggi / 2 + 8;
-    const radiusPiksel = Math.min(118, lebar * 0.28);
-    const keadaan = hitungKeadaanGerakMelingkar(parameter, Math.min(waktu, parameter.durasi));
-    const theta = keadaan.sudut;
-    const bendaX = pusatX + radiusPiksel * Math.cos(theta);
-    const bendaY = pusatY - radiusPiksel * Math.sin(theta);
+    context.clearRect(0, 0, width, height);
+    context.fillStyle = COLORS.background; context.fillRect(0, 0, width, height);
+    context.strokeStyle = COLORS.grid; context.lineWidth = 1;
+    const spacing = 32;
+    for (let gx = centerX % spacing; gx < width; gx += spacing) { context.beginPath(); context.moveTo(gx, 0); context.lineTo(gx, height); context.stroke(); }
+    for (let gy = centerY % spacing; gy < height; gy += spacing) { context.beginPath(); context.moveTo(0, gy); context.lineTo(width, gy); context.stroke(); }
 
-    konteks.clearRect(0, 0, lebar, tinggi);
-    konteks.fillStyle = WARNA.latar;
-    konteks.fillRect(0, 0, lebar, tinggi);
-
-    // Kisi latar.
-    konteks.strokeStyle = WARNA.kisi;
-    konteks.lineWidth = 1;
-    const jarakKisi = 32;
-    for (let x = pusatX % jarakKisi; x < lebar; x += jarakKisi) {
-      konteks.beginPath();
-      konteks.moveTo(x, 0);
-      konteks.lineTo(x, tinggi);
-      konteks.stroke();
-    }
-    for (let y = pusatY % jarakKisi; y < tinggi; y += jarakKisi) {
-      konteks.beginPath();
-      konteks.moveTo(0, y);
-      konteks.lineTo(lebar, y);
-      konteks.stroke();
+    // Sumbu koordinat dan skala meter.
+    context.strokeStyle = "rgba(145,182,255,.55)"; context.lineWidth = 1.4;
+    context.beginPath(); context.moveTo(24, centerY); context.lineTo(width - 24, centerY); context.moveTo(centerX, 28); context.lineTo(centerX, height - 42); context.stroke();
+    context.fillStyle = COLORS.text; context.font = "10px Inter, system-ui, sans-serif";
+    const pixelsPerMeter = scaleMode === "actual-scale" ? radiusPx / parameter.jariJari : radiusPx / parameter.jariJari;
+    const maxTick = Math.max(1, Math.floor((Math.min(width * 0.44, height * 0.40) / Math.max(pixelsPerMeter, 1))));
+    for (let tick = -maxTick; tick <= maxTick; tick += Math.max(1, Math.ceil(maxTick / 4))) {
+      if (tick === 0) continue;
+      const px = centerX + tick * pixelsPerMeter;
+      const py = centerY - tick * pixelsPerMeter;
+      if (px > 28 && px < width - 28) { context.beginPath(); context.moveTo(px, centerY - 4); context.lineTo(px, centerY + 4); context.stroke(); context.fillText(String(tick), px - 4, centerY + 16); }
+      if (py > 28 && py < height - 42) { context.beginPath(); context.moveTo(centerX - 4, py); context.lineTo(centerX + 4, py); context.stroke(); context.fillText(String(tick), centerX + 8, py + 3); }
     }
 
-    // Lingkaran lintasan.
-    konteks.strokeStyle = "rgba(85, 224, 193, 0.48)";
-    konteks.lineWidth = 2;
-    konteks.setLineDash([6, 6]);
-    konteks.beginPath();
-    konteks.arc(pusatX, pusatY, radiusPiksel, 0, Math.PI * 2);
-    konteks.stroke();
-    konteks.setLineDash([]);
-
-    // Jejak sudut yang sudah ditempuh. Jumlah sampel dibatasi agar tetap ringan.
-    const thetaAwal = (parameter.sudutAwalDerajat * Math.PI) / 180;
-    const selisihSudut = theta - thetaAwal;
-    const jumlahSampel = Math.max(2, Math.min(600, Math.ceil(Math.abs(selisihSudut) * 24)));
-    konteks.strokeStyle = WARNA.lintasan;
-    konteks.lineWidth = 3;
-    konteks.beginPath();
-    for (let indeks = 0; indeks <= jumlahSampel; indeks += 1) {
-      const sudut = thetaAwal + (selisihSudut * indeks) / jumlahSampel;
-      const x = pusatX + radiusPiksel * Math.cos(sudut);
-      const y = pusatY - radiusPiksel * Math.sin(sudut);
-      if (indeks === 0) konteks.moveTo(x, y);
-      else konteks.lineTo(x, y);
+    // Lingkaran, busur lintasan, jari-jari dan benda bergerak.
+    context.strokeStyle = "rgba(85,224,193,.6)"; context.lineWidth = 2; context.setLineDash([6, 6]);
+    context.beginPath(); context.arc(centerX, centerY, radiusPx, 0, Math.PI * 2); context.stroke(); context.setLineDash([]);
+    const start = parameter.sudutAwalDerajat * Math.PI / 180;
+    const difference = state.sudut - start;
+    const samples = Math.max(2, Math.min(600, Math.ceil(Math.abs(difference) * 24)));
+    context.strokeStyle = COLORS.trail; context.lineWidth = 3; context.beginPath();
+    for (let i = 0; i <= samples; i += 1) {
+      const angle = start + difference * i / samples;
+      const px = centerX + radiusPx * Math.cos(angle); const py = centerY - radiusPx * Math.sin(angle);
+      if (i === 0) context.moveTo(px, py); else context.lineTo(px, py);
     }
-    konteks.stroke();
-
-    // Jari-jari dari pusat ke posisi benda.
-    konteks.strokeStyle = WARNA.radius;
-    konteks.lineWidth = 2;
-    konteks.beginPath();
-    konteks.moveTo(pusatX, pusatY);
-    konteks.lineTo(bendaX, bendaY);
-    konteks.stroke();
-    konteks.fillStyle = WARNA.radius;
-    konteks.font = "12px Inter, system-ui, sans-serif";
-    const tengahRadiusX = (pusatX + bendaX) / 2;
-    const tengahRadiusY = (pusatY + bendaY) / 2;
-    konteks.fillText("R", tengahRadiusX + 7, tengahRadiusY - 7);
-
-    // Pusat putaran.
-    konteks.fillStyle = "#e9eef8";
-    konteks.beginPath();
-    konteks.arc(pusatX, pusatY, 4, 0, Math.PI * 2);
-    konteks.fill();
-    konteks.fillStyle = WARNA.teks;
-    konteks.fillText("Pusat", pusatX + 9, pusatY + 17);
+    context.stroke();
+    context.strokeStyle = COLORS.radius; context.lineWidth = 2; context.beginPath(); context.moveTo(centerX, centerY); context.lineTo(x, y); context.stroke();
+    context.fillStyle = "#f3f5fb"; context.beginPath(); context.arc(centerX, centerY, 4, 0, Math.PI * 2); context.fill();
 
     if (tampilkanVektor) {
-      // Vektor kecepatan tangensial: tegak lurus jari-jari.
-      if (Math.abs(keadaan.kecepatanSudut) > 1e-6) {
-        const tandaArah = Math.sign(keadaan.kecepatanSudut);
-        const panjangV = Math.min(76, Math.max(22, keadaan.kecepatanTangensial * 4));
-        const arahVx = -Math.sin(theta) * tandaArah;
-        const arahVy = -Math.cos(theta) * tandaArah;
-        gambarPanah(
-          konteks,
-          bendaX,
-          bendaY,
-          bendaX + arahVx * panjangV,
-          bendaY + arahVy * panjangV,
-          WARNA.kecepatan,
-        );
-        konteks.fillStyle = WARNA.kecepatan;
-        konteks.fillText("v", bendaX + arahVx * (panjangV + 12), bendaY + arahVy * (panjangV + 12));
+      if (Math.abs(state.kecepatanSudut) > 1e-6) {
+        const sign = Math.sign(state.kecepatanSudut);
+        const length = Math.min(72, Math.max(20, state.kecepatanTangensial * 3.5));
+        drawArrow(context, x, y, x - Math.sin(state.sudut) * sign * length, y - Math.cos(state.sudut) * sign * length, COLORS.velocity);
+        context.fillStyle = COLORS.velocity; context.fillText("v", x - Math.sin(state.sudut) * sign * (length + 12), y - Math.cos(state.sudut) * sign * (length + 12));
       }
-
-      // Percepatan sentripetal selalu mengarah menuju pusat lingkaran.
-      if (keadaan.percepatanSentripetal > 1e-6) {
-        const panjangA = Math.min(66, Math.max(22, keadaan.percepatanSentripetal * 2.5));
-        const arahX = (pusatX - bendaX) / radiusPiksel;
-        const arahY = (pusatY - bendaY) / radiusPiksel;
-        gambarPanah(
-          konteks,
-          bendaX,
-          bendaY,
-          bendaX + arahX * panjangA,
-          bendaY + arahY * panjangA,
-          WARNA.sentripetal,
-        );
-        konteks.fillStyle = WARNA.sentripetal;
-        konteks.fillText("a꜀", bendaX + arahX * (panjangA + 12), bendaY + arahY * (panjangA + 12));
+      if (state.percepatanSentripetal > 1e-6) {
+        const length = Math.min(64, Math.max(18, state.percepatanSentripetal * 1.8));
+        const dx = (centerX - x) / radiusPx; const dy = (centerY - y) / radiusPx;
+        drawArrow(context, x, y, x + dx * length, y + dy * length, COLORS.centripetal);
+        context.fillStyle = COLORS.centripetal; context.fillText("a꜀", x + dx * (length + 12), y + dy * (length + 12));
       }
     }
+    context.shadowColor = "rgba(255,202,112,.42)"; context.shadowBlur = 16; context.fillStyle = COLORS.object;
+    context.beginPath(); context.arc(x, y, 9, 0, Math.PI * 2); context.fill(); context.shadowBlur = 0;
+    context.fillStyle = COLORS.text; context.font = "12px Inter, system-ui, sans-serif";
+    context.fillText(`t = ${waktu.toFixed(2)} s`, 18, 20);
+    context.fillText(`θ = ${state.sudutDerajat.toFixed(1)}°`, 18, 40);
+    context.fillText(`ω = ${state.kecepatanSudut.toFixed(2)} rad/s`, width - 195, 20);
+    context.fillText(`R = ${parameter.jariJari.toFixed(2)} m · ${scaleMode === "boundary-box" ? "Boundary Box" : "Actual Scale"}`, 18, height - 12);
+  }, [canvasRef, height, parameter, pixelRatio, scaleMode, tampilkanVektor, waktu, width]);
 
-    // Benda yang bergerak pada lintasan.
-    konteks.shadowColor = "rgba(255, 202, 112, 0.4)";
-    konteks.shadowBlur = 17;
-    konteks.fillStyle = WARNA.benda;
-    konteks.beginPath();
-    konteks.arc(bendaX, bendaY, 10, 0, Math.PI * 2);
-    konteks.fill();
-    konteks.shadowBlur = 0;
-
-    // Label waktu dan keadaan sudut.
-    konteks.fillStyle = WARNA.teks;
-    konteks.font = "12px Inter, system-ui, sans-serif";
-    konteks.fillText(`t = ${waktu.toFixed(2)} s`, 18, 22);
-    konteks.fillText(`θ = ${keadaan.sudutDerajat.toFixed(1)}°`, 18, 42);
-    konteks.fillText(`ω = ${keadaan.kecepatanSudut.toFixed(2)} rad/s`, lebar - 188, 22);
-
-    // Legenda vektor.
-    konteks.fillStyle = WARNA.kecepatan;
-    konteks.fillText("v: kecepatan tangensial", 18, tinggi - 34);
-    konteks.fillStyle = WARNA.sentripetal;
-    konteks.fillText("a꜀: percepatan sentripetal", 18, tinggi - 15);
-  }, [parameter, waktu, tampilkanVektor]);
-
-  return (
-    <canvas
-      ref={kanvasRef}
-      role="img"
-      aria-label="Visualisasi lintasan gerak melingkar, jari-jari, kecepatan tangensial, dan percepatan sentripetal"
-      style={{ display: "block", width: "100%", borderRadius: 12 }}
-    />
-  );
+  return <canvas ref={canvasRef} role="img" aria-label="Visualisasi lintasan GMB dan GMBB dengan koordinat dan vektor" style={{ display: "block", width: "100%", height, borderRadius: 12 }} />;
 }
 
-function gambarPanah(
-  konteks: CanvasRenderingContext2D,
-  awalX: number,
-  awalY: number,
-  akhirX: number,
-  akhirY: number,
-  warna: string,
-) {
-  const sudut = Math.atan2(akhirY - awalY, akhirX - awalX);
-  konteks.strokeStyle = warna;
-  konteks.fillStyle = warna;
-  konteks.lineWidth = 2.5;
-  konteks.beginPath();
-  konteks.moveTo(awalX, awalY);
-  konteks.lineTo(akhirX, akhirY);
-  konteks.stroke();
-  konteks.beginPath();
-  konteks.moveTo(akhirX, akhirY);
-  konteks.lineTo(akhirX - 9 * Math.cos(sudut - Math.PI / 6), akhirY - 9 * Math.sin(sudut - Math.PI / 6));
-  konteks.lineTo(akhirX - 9 * Math.cos(sudut + Math.PI / 6), akhirY - 9 * Math.sin(sudut + Math.PI / 6));
-  konteks.closePath();
-  konteks.fill();
+function drawArrow(context: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, color: string) {
+  const angle = Math.atan2(y2 - y1, x2 - x1); const size = 8;
+  context.strokeStyle = color; context.fillStyle = color; context.lineWidth = 2.4;
+  context.beginPath(); context.moveTo(x1, y1); context.lineTo(x2, y2); context.stroke();
+  context.beginPath(); context.moveTo(x2, y2); context.lineTo(x2 - size * Math.cos(angle - Math.PI / 6), y2 - size * Math.sin(angle - Math.PI / 6)); context.lineTo(x2 - size * Math.cos(angle + Math.PI / 6), y2 - size * Math.sin(angle + Math.PI / 6)); context.closePath(); context.fill();
 }

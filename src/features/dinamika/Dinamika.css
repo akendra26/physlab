@@ -31,7 +31,7 @@
 }
 .dinamika-submenu-button:hover { background: #14243a; }
 .dinamika-submenu-button.is-active {
-  background: rgba(85,224,193,.085);
+  background: rgba(232,153,115,.085);
   box-shadow: inset 0 -2px 0 var(--mint);
 }
 .dinamika-submenu-number {
@@ -115,8 +115,8 @@
 .dinamika-control-note {
   margin: 14px 0 0;
   padding: 10px 11px;
-  border-left: 2px solid rgba(85,224,193,.5);
-  background: rgba(85,224,193,.04);
+  border-left: 2px solid rgba(232,153,115,.5);
+  background: rgba(232,153,115,.04);
   color: var(--muted);
   font-size: .65rem;
   line-height: 1.6;
@@ -149,9 +149,9 @@
 .dinamika-status-line {
   margin: 13px 0 0;
   padding: 10px 12px;
-  border: 1px solid rgba(85,224,193,.15);
+  border: 1px solid rgba(232,153,115,.15);
   border-radius: 7px;
-  background: rgba(85,224,193,.045);
+  background: rgba(232,153,115,.045);
   color: #c8d8e5;
   font-size: .69rem;
   line-height: 1.55;
@@ -178,7 +178,7 @@
 .dinamika-mode-switch button > span { color: var(--mint); font: 500 .63rem 'DM Mono', monospace; }
 .dinamika-mode-switch button strong { font: 600 .78rem 'Space Grotesk', sans-serif; }
 .dinamika-mode-switch button small { color: var(--muted); font-size: .64rem; }
-.dinamika-mode-switch button.is-active { border-color: rgba(85,224,193,.55); background: rgba(85,224,193,.07); }
+.dinamika-mode-switch button.is-active { border-color: rgba(232,153,115,.55); background: rgba(232,153,115,.07); }
 .dinamika-mode-switch button:hover { border-color: var(--mint); }
 
 /* =========================================
@@ -283,9 +283,9 @@
 .model-matematika-catatan {
   margin-top: 15px;
   padding: 11px 13px;
-  border-left: 2px solid rgba(85,224,193,.55);
+  border-left: 2px solid rgba(232,153,115,.55);
   border-radius: 0 7px 7px 0;
-  background: rgba(85,224,193,.045);
+  background: rgba(232,153,115,.045);
   color: var(--muted);
   font-size: .7rem;
   line-height: 1.65;
@@ -370,9 +370,9 @@
 }
 .tombol-teks-kecil,
 .tombol-hapus-blok {
-  border: 1px solid rgba(85,224,193,.28);
+  border: 1px solid rgba(232,153,115,.28);
   border-radius: 6px;
-  background: rgba(85,224,193,.06);
+  background: rgba(232,153,115,.06);
   color: var(--mint);
   font: 600 .64rem 'DM Mono', monospace;
   cursor: pointer;
@@ -469,8 +469,8 @@
   cursor: pointer;
 }
 .kontrol-waktu-dinamika-tombol .tombol-jalan-dinamika {
-  border-color: rgba(85,224,193,.45);
-  background: rgba(85,224,193,.1);
+  border-color: rgba(232,153,115,.45);
+  background: rgba(232,153,115,.1);
   color: var(--mint);
 }
 .kontrol-waktu-dinamika-tombol output {
@@ -488,52 +488,13 @@
 .label-kecepatan-dinamika select { min-height: 29px; padding: 4px 7px; }
 .penggeser-waktu-dinamika { display: block; width: 100%; margin: 9px 0 0; accent-color: var(--mint); }
 .penggeser-waktu-dinamika:disabled { opacity: .35; }
-.kanvas-sandbox-2d {
-  max-height: 480px !important;
-  border: 1px solid rgba(145,161,184,.12);
-  border-radius: 9px;
-  background: #0d1929;
-  touch-action: none;
-  cursor: default;
-}
-.kanvas-sandbox-2d.mode-tambah-aktif { cursor: crosshair; }
-.area-sandbox-spawn { cursor: inherit; }
-.balok-dapat-digeser { cursor: grab; touch-action: none; }
-.balok-dapat-digeser:active { cursor: grabbing; }
 .vektor-dapat-ditarik .pegangan-vektor { touch-action: none; }
-.pilihan-mode-poros { display: grid; gap: 6px; }
-.pilihan-mode-poros button { width: 100%; text-align: left; }
-.pengelola-gaya-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.pengelola-gaya-heading .dinamika-control-section-title { margin: 0; }
-.daftar-gaya-rotasi { display: grid; gap: 12px; }
-.kartu-gaya-rotasi {
-  min-width: 0;
-  padding: 11px 10px 3px;
-  border: 1px solid rgba(145,161,184,.14);
-  border-radius: 8px;
-  background: rgba(255,255,255,.018);
-}
-.kartu-gaya-rotasi-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 9px;
-  font-size: .7rem;
-}
-.kartu-gaya-rotasi-header .tombol-hapus-blok { padding: 4px 7px; }
-.partikel-udara-lift circle { filter: drop-shadow(0 0 3px rgba(85,224,193,.45)); }
+.partikel-udara-lift circle { filter: drop-shadow(0 0 3px rgba(232,153,115,.45)); }
 .tombol-teks-kecil.is-selected { color: #f6bd60; border-color: rgba(246,189,96,.45); background: rgba(246,189,96,.1); }
 
 @media (max-width: 650px) {
   .panel-grafik-dinamika { padding: 13px; }
   .kontrol-waktu-dinamika-tombol output { width: 100%; margin: 2px 0 0; }
-  .kanvas-sandbox-2d { max-height: 360px !important; }
 }
 
 /* GLOBAL DYNAMICS LAYOUT — controls above visual and graph */
@@ -553,9 +514,7 @@
 .dinamika-simulasi > .dinamika-workspace > .control-panel > .panel-heading,
 .dinamika-simulasi > .dinamika-workspace > .control-panel > .dinamika-control-note,
 .dinamika-simulasi > .dinamika-workspace > .control-panel > .dinamika-control-divider,
-.dinamika-simulasi > .dinamika-workspace > .control-panel > .dinamika-control-section-title,
-.dinamika-simulasi > .dinamika-workspace > .control-panel > .pengelola-gaya-heading,
-.dinamika-simulasi > .dinamika-workspace > .control-panel > .daftar-gaya-rotasi {
+.dinamika-simulasi > .dinamika-workspace > .control-panel > .dinamika-control-section-title {
   grid-column: 1 / -1;
 }
 .dinamika-simulasi > .dinamika-workspace > .dinamika-main-column {
@@ -574,62 +533,102 @@
   .dinamika-simulasi > .dinamika-workspace > .control-panel > .panel-heading,
   .dinamika-simulasi > .dinamika-workspace > .control-panel > .dinamika-control-note,
   .dinamika-simulasi > .dinamika-workspace > .control-panel > .dinamika-control-divider,
-  .dinamika-simulasi > .dinamika-workspace > .control-panel > .dinamika-control-section-title,
-  .dinamika-simulasi > .dinamika-workspace > .control-panel > .pengelola-gaya-heading,
-  .dinamika-simulasi > .dinamika-workspace > .control-panel > .daftar-gaya-rotasi {
+  .dinamika-simulasi > .dinamika-workspace > .control-panel > .dinamika-control-section-title {
     grid-column: auto;
   }
 }
 
+/* Hub Dinamika yang telah dikonsolidasikan. */
+.dinamika-kurikulum-page { display: grid; gap: 16px; }
+.dinamika-kurikulum-content { min-width:0; }
+.dinamika-skenario-root { min-width:0; }
+.dinamika-skenario-root .workspace { display:grid; grid-template-columns:minmax(230px,280px) minmax(0,1fr); gap:16px; align-items:start; }
+.dinamika-skenario-root .control-panel { min-width:0; }
+.dinamika-skenario-root .main-column { display:grid; gap:13px; min-width:0; }
+.dinamika-skenario-root .dinamika-visual-panel { padding:18px; }
+.dinamika-scene-frame { width:100%; min-width:0; overflow:hidden; margin-top:10px; border:1px solid rgba(145,182,255,.18); border-radius:13px; background:#0b1422; aspect-ratio:2/1; }
+.dinamika-scene-frame svg { display:block; width:100%; height:100%; }
+.dinamika-skenario-root .dinamika-status-line { margin-top:12px; }
+.dinamika-osilasi-switch,.dinamika-aplikasi-switch { display:flex; flex-wrap:wrap; gap:7px; margin:6px 0 15px; }
+.dinamika-osilasi-switch button,.dinamika-aplikasi-switch button { flex:1; min-width:120px; min-height:36px; padding:8px 11px; border:1px solid rgba(145,161,184,.2); border-radius:8px; background:rgba(10,19,38,.7); color:#aebbd0; font-size:.69rem; font-weight:600; cursor:pointer; }
+.dinamika-osilasi-switch button.is-active,.dinamika-aplikasi-switch button.is-active { color:#ffe1d2; border-color:rgba(232,153,115,.55); background:rgba(232,153,115,.12); }
+.dinamika-skenario-analysis { margin-top:0; }
+.time-number-entry { display:flex; align-items:center; gap:7px; min-width:140px; padding:5px 8px; border:1px solid rgba(145,161,184,.23); border-radius:8px; background:rgba(8,16,33,.68); }
+.time-number-entry span { color:#8798b7; font:700 .55rem 'DM Mono',monospace; letter-spacing:.08em; }
+.time-number-entry input { width:82px; min-width:0; border:0; outline:0; background:transparent; color:#f3eee9; font:600 .83rem 'DM Mono',monospace; text-align:right; }
+.time-number-entry small { color:#9aabc2; font-size:.62rem; }
 
-/* Kontrol sandbox Newton: tombol playback konsisten dengan kontrol simulasi lain. */
-.kontrol-simulasi-dinamika {
-  display: flex;
+@media(max-width:980px){
+  .dinamika-skenario-root .workspace { grid-template-columns:minmax(0,1fr); }
+  .dinamika-scene-frame { aspect-ratio:16/9; min-height:220px; }
+}
+@media(max-width:680px){
+  .dinamika-skenario-root .dinamika-visual-panel { padding:12px; }
+  .dinamika-scene-frame { aspect-ratio:4/3; min-height:215px; }
+  .time-number-entry input { width:66px; }
+}
+
+/* Compact, keyboard-friendly time budget controls shared by all dynamics stages. */
+.dinamika-duration-control {
+  display: grid;
+  grid-template-columns: auto minmax(90px, 1fr) 66px 12px;
   align-items: center;
-  flex-wrap: wrap;
   gap: 9px;
-  margin-top: 13px;
-  padding: 11px 12px;
-  border: 1px solid var(--border);
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 11px;
+  border: 1px solid rgba(232,153,115,.2);
   border-radius: 8px;
-  background: rgba(8, 15, 27, .45);
+  background: rgba(8,16,33,.48);
 }
-.kontrol-simulasi-dinamika > button {
-  min-height: 36px;
-  padding: 8px 12px;
-  border: 1px solid #35475f;
-  border-radius: 7px;
-  background: #152236;
-  color: #dbe5f1;
-  font: 600 .68rem 'DM Mono', monospace;
-  cursor: pointer;
-  transition: background .15s, border-color .15s, transform .15s;
+.dinamika-duration-control label { color: var(--muted); font-size: .66rem; white-space: nowrap; }
+.dinamika-duration-control input[type="range"] { width: 100%; min-width: 70px; accent-color: #e89973; }
+.dinamika-duration-control input[type="number"] { width: 66px; min-width: 0; padding: 5px 6px; border: 1px solid #35475f; border-radius: 6px; background: #0b1422; color: #f3eee9; font: 600 .7rem 'DM Mono',monospace; text-align: right; }
+.dinamika-duration-control > span { color: var(--muted); font-size: .65rem; }
+.kontrol-simulasi-dinamika { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:14px; }
+.kontrol-simulasi-dinamika > button { min-height:32px; padding:6px 10px; border:1px solid #35475f; border-radius:7px; background:#152236; color:#dbe5f1; font-size:.68rem; font-weight:600; cursor:pointer; }
+.kontrol-simulasi-dinamika > button:first-child { border-color:rgba(232,153,115,.5); background:rgba(232,153,115,.13); color:#ffe1d2; }
+.kontrol-simulasi-dinamika > label { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:.67rem; }
+.kontrol-simulasi-dinamika select { min-height:30px; padding:4px 7px; border:1px solid #35475f; border-radius:6px; background:#152236; color:#e9eef8; }
+.kontrol-simulasi-dinamika .dinamika-duration-control { flex-basis:100%; }
+@media(max-width:620px) {
+  .dinamika-duration-control { grid-template-columns:1fr 58px 12px; gap:7px; }
+  .dinamika-duration-control label { grid-column:1 / -1; }
 }
-.kontrol-simulasi-dinamika > button:hover { border-color: var(--mint); background: #1a2b40; }
-.kontrol-simulasi-dinamika > .tombol-jalan-dinamika {
-  border-color: rgba(85,224,193,.5);
-  background: rgba(85,224,193,.12);
-  color: var(--mint);
+
+/* Keep animated SVG scenes isolated so control-panel updates do not repaint the full page. */
+.dinamika-scene-frame {
+  contain: layout paint style;
+  transform: translateZ(0);
 }
-.kontrol-simulasi-dinamika > .tombol-reset-dinamika { color: #c4cede; }
-.kontrol-simulasi-dinamika > label {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--muted);
-  font-size: .68rem;
+.dinamika-scene-frame svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
-.kontrol-simulasi-dinamika select {
-  min-height: 32px;
-  padding: 5px 8px;
-  border: 1px solid #35475f;
-  border-radius: 6px;
-  background: #152236;
-  color: #e9eef8;
+
+/* Consistent controls and force-vector legibility across all Dynamics stages. */
+.dinamika-select { color-scheme: dark; background-color: #18181b; border-color: rgba(232,153,115,.28); }
+.dinamika-select:hover { border-color: rgba(232,153,115,.72); }
+.dinamika-select:focus-visible { outline: 2px solid #e89973; outline-offset: 2px; border-color: #e89973; }
+.dinamika-select option { background: #18181b; color: #f4f4f5; }
+.force-vector-arrow line:last-of-type { filter: drop-shadow(0 0 2px rgba(0,0,0,.8)); }
+.force-vector-arrow text { paint-order: stroke; }
+
+.dinamika-newton-switch { margin: 0 0 16px; }
+.dinamika-newton-switch button { min-height: 42px; }
+
+/* Dynamics layout hardening and Atwood live mass steppers */
+.dinamika-scene-frame { width: 100%; min-width: 0; aspect-ratio: 2 / 1; overflow: hidden; border-radius: 14px; }
+.dinamika-scene-frame svg { display: block; width: 100%; height: 100%; max-height: none; margin: 0; }
+.dinamika-visual-panel { min-width: 0; overflow: hidden; }
+.atwood-mass-control { display: grid; gap: 5px; margin-bottom: 14px; }
+.atwood-stepper { display: flex; align-items: center; justify-content: flex-end; gap: 9px; }
+.atwood-stepper button { width: 30px; height: 30px; border: 1px solid #40516c; border-radius: 7px; background: #152236; color: #e9eef8; font-size: 1.1rem; cursor: pointer; }
+.atwood-stepper button:hover { border-color: var(--mint); color: var(--mint); }
+.atwood-stepper output { min-width: 65px; text-align: center; color: #cbd5e1; font: 600 .72rem 'DM Mono', monospace; }
+@media (max-width: 760px) {
+  .dinamika-scene-frame { aspect-ratio: 1.45 / 1; }
 }
-.kontrol-simulasi-dinamika output,
-.kontrol-simulasi-dinamika .infinite-time-readout {
-  color: #aebbd0;
-  font: .68rem 'DM Mono', monospace;
-}
-.kontrol-simulasi-dinamika input[type="range"] { accent-color: var(--mint); }
