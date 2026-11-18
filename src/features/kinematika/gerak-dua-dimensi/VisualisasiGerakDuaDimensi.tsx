@@ -31,8 +31,11 @@ export default function VisualisasiGerakDuaDimensi({ params, time, showVectors, 
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
     if (!canvas || !context) return;
-    canvas.width = Math.round(width * pixelRatio);
-    canvas.height = Math.round(height * pixelRatio);
+    const targetWidth = Math.round(width * pixelRatio);
+    const targetHeight = Math.round(height * pixelRatio);
+    // Setting canvas dimensions clears its buffer; only resize when the size actually changes.
+    if (canvas.width !== targetWidth) canvas.width = targetWidth;
+    if (canvas.height !== targetHeight) canvas.height = targetHeight;
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
     const margin = { left: 52, right: 24, top: 28, bottom: 46 };

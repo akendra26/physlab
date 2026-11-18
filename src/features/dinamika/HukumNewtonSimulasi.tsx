@@ -116,6 +116,7 @@ export default function HukumNewtonSimulasi() {
   const tarikanRef = useRef<Tarikan>(null);
   const balokAktifIdRef = useRef(1);
   const akumulatorGrafik = useRef(0);
+  const akumulatorUi = useRef(0);
 
   const balokAktif = balok.find((item) => item.id === balokAktifId) ?? balok[0];
   useEffect(() => { balokRef.current = balok; }, [balok]);
@@ -129,6 +130,7 @@ export default function HukumNewtonSimulasi() {
       const dt = Math.min((capWaktu - sebelumnya) / 1000, 1 / 30) * pengaliKecepatan;
       sebelumnya = capWaktu;
       if (dt > 0) {
+        akumulatorUi.current += dt;
         balokRef.current = langkahSandboxRuangBebas(balokRef.current, dt, {
           gravitasi,
           sudutBidang,
@@ -142,8 +144,11 @@ export default function HukumNewtonSimulasi() {
           ? waktuRef.current + dt
           : Math.min(DURASI, waktuRef.current + dt);
         akumulatorGrafik.current += dt;
-        setBalok([...balokRef.current]);
-        setWaktu(waktuRef.current);
+        if (akumulatorUi.current >= 1 / 30) {
+          akumulatorUi.current %= 1 / 30;
+          setBalok([...balokRef.current]);
+          setWaktu(waktuRef.current);
+        }
         if (akumulatorGrafik.current >= 0.08) {
           const selangSampel = akumulatorGrafik.current;
           akumulatorGrafik.current = 0;
@@ -225,6 +230,8 @@ export default function HukumNewtonSimulasi() {
 
   const aturUlang = () => {
     setBerjalan(false);
+    akumulatorUi.current = 0;
+    akumulatorGrafik.current = 0;
     waktuRef.current = 0;
     setWaktu(0);
     balokRef.current = BALOK_AWAL;

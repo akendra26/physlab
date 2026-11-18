@@ -17,7 +17,7 @@ export default function useCanvasDimensions(aspectRatio = 16 / 9, minHeight = 22
       frame = requestAnimationFrame(() => {
         const width = Math.max(1, Math.round(inputWidth || host.getBoundingClientRect().width || 760));
         const height = Math.max(1, Math.round(width / aspectRatio));
-        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
         setSize((previous) => previous.width === width && previous.height === height && previous.pixelRatio === pixelRatio
           ? previous
           : { width, height, pixelRatio });

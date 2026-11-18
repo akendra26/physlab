@@ -34,12 +34,15 @@ export default function usePlayback(durasi: number) {
 
     let nomorBingkai = 0;
     let capWaktuSebelumnya: number | null = null;
+    let akumulatorUi = 0;
+    const intervalUi = 1 / 30;
 
     const animasikan = (capWaktu: number) => {
       if (capWaktuSebelumnya === null) capWaktuSebelumnya = capWaktu;
       const selang = Math.min((capWaktu - capWaktuSebelumnya) / 1000, 0.05);
       capWaktuSebelumnya = capWaktu;
       const berikutnya = referensiWaktu.current + selang * pengaliKecepatan;
+      akumulatorUi += selang;
 
       if (!tanpaBatas && berikutnya >= durasi) {
         // Jika parameter durasi diperkecil melewati t yang sudah tercapai,
@@ -50,7 +53,12 @@ export default function usePlayback(durasi: number) {
         return;
       }
 
-      aturWaktu(berikutnya);
+      // Physics time remains frame-based, but React only re-renders the page at 30 FPS.
+      referensiWaktu.current = berikutnya;
+      if (akumulatorUi >= intervalUi) {
+        akumulatorUi %= intervalUi;
+        setWaktu(berikutnya);
+      }
       nomorBingkai = requestAnimationFrame(animasikan);
     };
 

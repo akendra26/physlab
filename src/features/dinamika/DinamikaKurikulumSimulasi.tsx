@@ -155,12 +155,15 @@ function DinamikaSkenario({ skenario }: { skenario: SkenarioDinamika }) {
     let frame = 0;
     let previous: number | null = null;
     let accumulator = 0;
+    let uiAccumulator = 0;
     const fixedStep = 1 / 60;
+    const uiInterval = 1 / 30;
     const tick = (timestamp: number) => {
       if (previous === null) previous = timestamp;
       const elapsed = Math.min((timestamp - previous) / 1000, 0.1);
       previous = timestamp;
       accumulator += elapsed * pengaliKecepatan;
+      uiAccumulator += elapsed;
       let nextTime = waktuRef.current;
       while (accumulator >= fixedStep) {
         nextTime += fixedStep;
@@ -175,8 +178,11 @@ function DinamikaSkenario({ skenario }: { skenario: SkenarioDinamika }) {
       }
       if (nextTime !== waktuRef.current) {
         waktuRef.current = nextTime;
-        // Jam/keadaan fisika dihitung di RAF 60 Hz; React memprioritaskan input di atas pembaruan visual.
-        startTransition(() => setWaktu(nextTime));
+        // Physics integrates at 60 Hz; React publishes visual state at 30 FPS to reduce page-wide renders.
+        if (uiAccumulator >= uiInterval) {
+          uiAccumulator %= uiInterval;
+          startTransition(() => setWaktu(nextTime));
+        }
       }
       frame = window.requestAnimationFrame(tick);
     };

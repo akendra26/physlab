@@ -30,9 +30,13 @@ function useJamSimulasi(durasi: number) {
     if (!berjalan) return;
     let bingkai = 0;
     let waktuSebelumnya: number | null = null;
+    let akumulatorUi = 0;
+    const intervalUi = 1 / 30;
     const perbarui = (capWaktu: number) => {
       if (waktuSebelumnya !== null) {
-        const berikutnya = waktuRef.current + ((capWaktu - waktuSebelumnya) / 1000) * pengaliKecepatan;
+        const delta = (capWaktu - waktuSebelumnya) / 1000;
+        const berikutnya = waktuRef.current + delta * pengaliKecepatan;
+        akumulatorUi += delta;
         if (!tanpaBatas && berikutnya >= durasi) {
           waktuRef.current = durasi;
           setWaktu(durasi);
@@ -40,7 +44,10 @@ function useJamSimulasi(durasi: number) {
           return;
         }
         waktuRef.current = berikutnya;
-        setWaktu(berikutnya);
+        if (akumulatorUi >= intervalUi) {
+          akumulatorUi %= intervalUi;
+          setWaktu(berikutnya);
+        }
       }
       waktuSebelumnya = capWaktu;
       bingkai = requestAnimationFrame(perbarui);

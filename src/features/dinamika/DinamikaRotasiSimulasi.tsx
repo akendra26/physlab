@@ -21,19 +21,29 @@ function useJamSimulasi(durasi: number) {
       return;
     }
 
+    let akumulatorUi = 0;
+    let deltaTertunda = 0;
+    const intervalUi = 1 / 30;
     const langkah = (now: number) => {
       if (waktuTerakhirRef.current === null) waktuTerakhirRef.current = now;
-      const delta = (now - waktuTerakhirRef.current) / 1000;
+      const delta = Math.min((now - waktuTerakhirRef.current) / 1000, 0.05);
       waktuTerakhirRef.current = now;
+      deltaTertunda += delta;
+      akumulatorUi += delta;
 
-      setWaktu((sebelumnya) => {
-        const berikutnya = sebelumnya + delta * pengaliKecepatan;
-        if (!tanpaBatas && berikutnya >= durasi) {
-          setBerjalan(false);
-          return durasi;
-        }
-        return berikutnya;
-      });
+      if (akumulatorUi >= intervalUi) {
+        const deltaUi = deltaTertunda * pengaliKecepatan;
+        deltaTertunda = 0;
+        akumulatorUi %= intervalUi;
+        setWaktu((sebelumnya) => {
+          const berikutnya = sebelumnya + deltaUi;
+          if (!tanpaBatas && berikutnya >= durasi) {
+            setBerjalan(false);
+            return durasi;
+          }
+          return berikutnya;
+        });
+      }
 
       frameRef.current = requestAnimationFrame(langkah);
     };
