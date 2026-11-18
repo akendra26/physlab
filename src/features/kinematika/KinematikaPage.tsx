@@ -1,7 +1,6 @@
 import GerakDuaDimensiSimulasi from "./gerak-dua-dimensi/GerakDuaDimensiSimulasi";
 import GerakLurusSimulasi from "./gerak-lurus/GerakLurusSimulasi";
 import GerakVertikalSimulasi from "./gerak-vertikal/GerakVertikalSimulasi";
-import GerakMelingkarSimulasi from "./gerak-melingkar/GerakMelingkarSimulasi";
 import type { ModulKinematikaId } from "../../config/konfigurasiNavigasi";
 
 /** Pengarah menu Kinematika; logika simulasi berada di komponen masing-masing. */

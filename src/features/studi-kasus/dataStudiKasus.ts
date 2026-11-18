@@ -174,7 +174,7 @@ export const DAFTAR_STUDI_KASUS: StudiKasus[] = [
     tingkat: "Dasar",
     durasi: "15 menit",
     rewardRp: 40,
-    simulasi: { kategori: "kinematika", modul: "gerak-lurus", label: "Gerak Lurus (GLB & GLBB)" },
+    simulasi: { kategori: "kinematika", modul: "glbb", label: "Gerak Lurus (GLB & GLBB)" },
     pertanyaanAnalisis: "Troli memiliki v₀ = 2 m/s dan a = 3 m/s². Berapa perpindahan selama 4 s?",
     pilihanAnalisis: [
       { id: "a", label: "20 m" },

@@ -42,8 +42,10 @@ const INFORMASI: Record<
   },
 };
 
-export default function GerakLurusSimulasi() {
-  const [mode, setMode] = useState<LinearMotionMode>("glb");
+type Props = { initialMode?: LinearMotionMode };
+
+export default function GerakLurusSimulasi({ initialMode = "glb" }: Props) {
+  const [mode, setMode] = useState<LinearMotionMode>(initialMode);
   const scaleMode = useKinematicsScaleMode();
 
   const [parameter, setParameter] =

@@ -13,5 +13,6 @@ export const DAFTAR_MODUL_DINAMIKA = [
   { id: "osilasi", nama: "Osilasi", singkatan: "PEGAS · BANDUL", simbol: "∿", status: "aktif" },
   { id: "atwood", nama: "Katrol Atwood", singkatan: "SISTEM KATROL", simbol: "⚙", status: "aktif" },
   { id: "lift", nama: "Lift", singkatan: "DINAMIKA ELEVATOR", simbol: "↕", status: "aktif" },
+  { id: "rotasi", nama: "Dinamika Rotasi", singkatan: "TORSI · INERSIA", simbol: "↻", status: "aktif" },
 ] as const;
 export type ModulDinamikaId = (typeof DAFTAR_MODUL_DINAMIKA)[number]["id"];

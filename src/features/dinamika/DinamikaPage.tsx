@@ -1,6 +1,7 @@
 import DinamikaKurikulumSimulasi from "./DinamikaKurikulumSimulasi";
 import type { ModulDinamikaId } from "../../config/konfigurasiNavigasi";
 import SimulationExperience from "../../components/simulasi/SimulationExperience";
+import DinamikaRotasiSimulasi from "./DinamikaRotasiSimulasi";
 import "./Dinamika.css";
 
 type Props = { modulAktif: ModulDinamikaId };
@@ -9,7 +10,9 @@ type Props = { modulAktif: ModulDinamikaId };
 export default function DinamikaPage({ modulAktif }: Props) {
   return (
     <SimulationExperience category="dinamika" moduleKey={modulAktif} showTabs={false}>
-      <DinamikaKurikulumSimulasi modulAktif={modulAktif} />
+      {modulAktif === "rotasi"
+        ? <DinamikaRotasiSimulasi />
+        : <DinamikaKurikulumSimulasi modulAktif={modulAktif} />}
     </SimulationExperience>
   );
 }
