@@ -34,7 +34,7 @@ export default function VisualisasiGerakLurus({
   showAxes = true,
   scaleMode = "boundary-box",
 }: Props) {
-  const { canvasRef, width, height, pixelRatio } = useCanvasDimensions(16 / 9, 220);
+  const { canvasRef, width, height, pixelRatio } = useCanvasDimensions(16 / 9, 320);
 
   useEffect(() => {
     const canvas = canvasRef.current;

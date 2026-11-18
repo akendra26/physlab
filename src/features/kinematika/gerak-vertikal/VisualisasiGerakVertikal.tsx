@@ -26,15 +26,18 @@ const WARNA = {
 
 /** Kanvas gerak vertikal dengan arah sumbu positif ke atas. */
 export default function VisualisasiGerakVertikal({ parameter, waktu, tampilkanVektor, scaleMode = "boundary-box" }: Props) {
-  const { canvasRef: kanvasRef, width: lebar, height: tinggi, pixelRatio: rasioPiksel } = useCanvasDimensions(16 / 9, 220);
+  const { canvasRef: kanvasRef, width: lebar, height: tinggi, pixelRatio: rasioPiksel } = useCanvasDimensions(16 / 9, 320);
 
   useEffect(() => {
     const kanvas = kanvasRef.current;
     const konteks = kanvas?.getContext("2d");
     if (!kanvas || !konteks) return;
 
-    kanvas.width = Math.round(lebar * rasioPiksel);
-    kanvas.height = Math.round(tinggi * rasioPiksel);
+    const targetWidth = Math.round(lebar * rasioPiksel);
+    const targetHeight = Math.round(tinggi * rasioPiksel);
+    // Jangan reset drawing buffer setiap frame; resize hanya saat ukuran berubah.
+    if (kanvas.width !== targetWidth) kanvas.width = targetWidth;
+    if (kanvas.height !== targetHeight) kanvas.height = targetHeight;
     konteks.setTransform(rasioPiksel, 0, 0, rasioPiksel, 0, 0);
 
     const metrik = hitungMetrikGerakVertikal(parameter);

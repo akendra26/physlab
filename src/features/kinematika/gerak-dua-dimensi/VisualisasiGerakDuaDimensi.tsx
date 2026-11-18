@@ -12,7 +12,7 @@ const WARNA = { grid: "rgba(148,163,184,.12)", axis: "#64748b", trail: "#55e0c1"
 
 /** Kanvas parabola responsif. Boundary Box memakai amplop sudut 0–360°, Actual Scale mengikuti jangkauan aktif. */
 export default function VisualisasiGerakDuaDimensi({ params, time, showVectors, scaleMode = "boundary-box" }: Props) {
-  const { canvasRef, width, height, pixelRatio } = useCanvasDimensions(16 / 9, 220);
+  const { canvasRef, width, height, pixelRatio } = useCanvasDimensions(16 / 9, 320);
   const envelope = useMemo(() => {
     let maxX = 1;
     let maxY = Math.max(1, params.initialHeight);

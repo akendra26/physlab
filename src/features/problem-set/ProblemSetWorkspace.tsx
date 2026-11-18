@@ -33,6 +33,7 @@ export default function ProblemSetWorkspace({
   const jumlahBenar = topik.soal.filter((item) => percobaan[item.id]?.benar).length;
   const hintsEn: Record<string,string[]> = {
     "gerobak-gerak-lurus":["In uniform motion, speed stays constant over the interval.","Relate initial velocity, acceleration, and elapsed time."],
+    "gerak-vertikal":["At the highest point, the instantaneous vertical velocity is zero.","For an object dropped from rest, use the vertical displacement equation."],
     "gerak-parabola":["Combine horizontal velocity with the total flight time.","Use the vertical component of the initial velocity."],
     "dinamika-newton":["Use the relationship between net force, mass, and acceleration.","For upward acceleration, the normal force is greater than the weight."],
     "katrol-atwood":["The driving force is the difference between the two weights.","For a downward-accelerating elevator, the normal force is smaller than the weight."],
@@ -43,6 +44,7 @@ export default function ProblemSetWorkspace({
   };
   const explanationsEn: Record<string,string[]> = {
     "gerobak-gerak-lurus":["Use Δx = vt = 12 × 5 = 60 m.","Use v = v₀ + at = 0 + 2.5 × 4 = 10 m/s."],
+    "gerak-vertikal":["At maximum height, v = 0. Use h = v₀²/(2g) = 20²/(2 × 10) = 20 m.","Use h = ½gt². Then t = √(2h/g) = √(90/10) = 3 s."],
     "gerak-parabola":["Use R = v₀² sin(2θ)/g = 400 × 0.866 / 10 ≈ 34.6 m.","Use T = 2v₀ sin(θ)/g = 2 × 20 × 0.5 / 10 = 2 s."],
     "dinamika-newton":["Newton's second law gives a = F/m = 20/5 = 4 m/s².","For upward acceleration, N = m(g+a) = 60(10+2) = 720 N."],
     "katrol-atwood":["For an ideal Atwood machine, a = (m₁−m₂)g/(m₁+m₂) = 2 m/s².","For downward acceleration, N = m(g−a) = 50(10−2) = 400 N."],
@@ -52,10 +54,11 @@ export default function ProblemSetWorkspace({
     "momentum-impuls":["Momentum is p = mv = 2 × 5 = 10 kg·m/s."]
   };
   const tingkatEn = soal.tingkat === "Dasar" ? "Basic" : soal.tingkat === "Menengah" ? "Intermediate" : "Advanced";
-  const referenceEn: Record<string,string> = {"gerobak-gerak-lurus":"Linear Motion","gerak-parabola":"Projectile Motion","dinamika-newton":"Newton's Laws","katrol-atwood":"Atwood Machine","pegas-osilasi":"Oscillations","lift-elevator":"Elevator Dynamics","usaha-energi":"Work & Energy","momentum-impuls":"Momentum & Impulse"};
-  const titleEn: Record<string,string> = {"gerobak-gerak-lurus":"Cart & Linear Motion","gerak-parabola":"Projectile Motion","dinamika-newton":"Newtonian Dynamics","katrol-atwood":"Atwood Pulley","pegas-osilasi":"Springs & Oscillations","lift-elevator":"Lift / Elevator","usaha-energi":"Work & Energy","momentum-impuls":"Momentum & Impulse"};
+  const referenceEn: Record<string,string> = {"gerobak-gerak-lurus":"Linear Motion","gerak-vertikal":"Free Fall & Vertical Motion","gerak-parabola":"Projectile Motion","dinamika-newton":"Newton's Laws","katrol-atwood":"Atwood Machine","pegas-osilasi":"Oscillations","lift-elevator":"Elevator Dynamics","usaha-energi":"Work & Energy","momentum-impuls":"Momentum & Impulse"};
+  const titleEn: Record<string,string> = {"gerobak-gerak-lurus":"GLB & GLBB","gerak-vertikal":"Free Fall & Vertical Motion","gerak-parabola":"Projectile Motion","dinamika-newton":"Newtonian Dynamics","katrol-atwood":"Atwood Pulley","pegas-osilasi":"Springs & Oscillations","lift-elevator":"Lift / Elevator","usaha-energi":"Work & Energy","momentum-impuls":"Momentum & Impulse"};
   const promptEn: Record<string,string[]> = {
     "gerobak-gerak-lurus":["A vehicle moves in a straight line at a constant speed of 12 m/s. What is its displacement after 5 s?","An object starts from rest and accelerates uniformly at 2.5 m/s² for 4 s. Find its final velocity."],
+    "gerak-vertikal":["A ball is thrown vertically upward at 20 m/s. With g = 10 m/s², find its maximum height above the launch point.","An object is dropped from rest from a height of 45 m. With g = 10 m/s², how long does it take to reach the ground?"],
     "gerak-parabola":["A projectile is launched at 20 m/s at 30° and lands at its launch height. With g = 10 m/s², find its horizontal range.","A projectile is launched at 20 m/s at 30°. With g = 10 m/s², find its total flight time when it returns to its initial height."],
     "dinamika-newton":["A 5 kg object experiences a horizontal net force of 20 N. Find its acceleration.","A 60 kg person stands in an elevator accelerating upward at 2 m/s². With g = 10 m/s², find the normal force."],
     "katrol-atwood":["Two masses of 3 kg and 2 kg are connected by a light rope over an ideal pulley. With g = 10 m/s², find the system acceleration.","A 50 kg person is in an elevator accelerating downward at 2 m/s². With g = 10 m/s², find the normal force."],
